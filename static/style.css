@@ -1,0 +1,177 @@
+/* Footy Intelligence — dark football analytics chat theme */
+
+html, body {
+	height: 100%;
+	margin: 0;
+	background: #0a0d0c;
+	font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.chat {
+	margin-top: auto;
+	margin-bottom: auto;
+}
+
+.card {
+	height: 500px;
+	border-radius: 15px !important;
+	background-color: #131917 !important;
+	border: 1px solid rgba(255, 255, 255, 0.08) !important;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55) !important;
+}
+
+.msg_head {
+	position: relative;
+	background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+	border-bottom: 2px solid #00ff9c !important;
+}
+
+.img_cont {
+	position: relative;
+	height: 50px;
+	width: 50px;
+}
+
+.user_img {
+	height: 50px;
+	width: 50px;
+	border: 1.5px solid #00ff9c;
+	object-fit: cover;
+}
+
+.user_img_msg {
+	height: 34px;
+	width: 34px;
+	border: 1px solid #00ff9c;
+	object-fit: cover;
+}
+
+.online_icon {
+	position: absolute;
+	height: 12px;
+	width: 12px;
+	background-color: #00ff9c;
+	border-radius: 50%;
+	bottom: 0;
+	right: 0;
+	border: 2px solid #131917;
+	box-shadow: 0 0 8px #00ff9c;
+}
+
+.offline_icon {
+	position: absolute;
+	height: 12px;
+	width: 12px;
+	background-color: #6b7570;
+	border-radius: 50%;
+	bottom: 0;
+	right: 0;
+	border: 2px solid #131917;
+}
+
+.user_info {
+	margin-left: 15px;
+	margin-top: auto;
+	margin-bottom: auto;
+}
+
+.user_info span {
+	font-size: 20px;
+	font-weight: 700;
+	color: #f5f7f6;
+}
+
+.user_info p {
+	font-size: 12px;
+	color: #9aa5a1;
+	margin-bottom: 0;
+}
+
+.msg_card_body {
+	overflow-y: auto;
+	background-color: #0f1512;
+}
+
+.msg_card_body::-webkit-scrollbar {
+	width: 8px;
+}
+
+.msg_card_body::-webkit-scrollbar-thumb {
+	background: rgba(0, 255, 156, 0.2);
+	border-radius: 999px;
+}
+
+.card-footer {
+	background-color: #131917 !important;
+	border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.type_msg {
+	background-color: rgba(255, 255, 255, 0.04) !important;
+	border: 1px solid rgba(255, 255, 255, 0.08) !important;
+	color: #f5f7f6 !important;
+	height: 50px !important;
+	border-radius: 999px 0 0 999px !important;
+	padding-left: 18px !important;
+}
+
+.type_msg:focus {
+	box-shadow: none !important;
+	border-color: #00ff9c !important;
+}
+
+.type_msg::placeholder {
+	color: #6b7570;
+}
+
+.send_btn {
+	border-radius: 0 999px 999px 0 !important;
+	background: linear-gradient(135deg, #00c97f, #3b8bff) !important;
+	border: none !important;
+	color: #06140f !important;
+	cursor: pointer;
+	transition: transform 0.15s ease, box-shadow 0.25s ease;
+}
+
+.send_btn:hover {
+	box-shadow: 0 6px 18px rgba(0, 255, 156, 0.35);
+	transform: translateY(-1px);
+}
+
+.msg_cotainer {
+	margin-left: 10px;
+	border-radius: 16px;
+	background-color: rgba(255, 255, 255, 0.04);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	padding: 10px 14px;
+	color: #e6ebe9;
+	position: relative;
+	max-width: 75%;
+}
+
+.msg_cotainer_send {
+	margin-right: 10px;
+	border-radius: 16px;
+	background: linear-gradient(135deg, #00c97f, #3b8bff);
+	padding: 10px 14px;
+	color: #06140f;
+	font-weight: 500;
+	position: relative;
+	max-width: 75%;
+}
+
+.msg_time {
+	position: absolute;
+	left: 0;
+	bottom: -18px;
+	color: #6b7570;
+	font-size: 10px;
+}
+
+.msg_time_send {
+	position: absolute;
+	right: 0;
+	bottom: -18px;
+	color: #6b7570;
+	font-size: 10px;
+}
