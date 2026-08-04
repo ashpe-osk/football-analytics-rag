@@ -1,117 +1,49 @@
 # Football Analytics RAG
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
-![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit&logoColor=white)
-![LangChain](https://img.shields.io/badge/LangChain-RAG-1C3C3C)
-![Chroma](https://img.shields.io/badge/VectorStore-Chroma-005571)
-![License](https://img.shields.io/badge/License-MIT-green)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Flask](https://img.shields.io/badge/Flask-2.3+-green.svg)](https://flask.palletsprojects.com/)
+[![LangChain](https://img.shields.io/badge/LangChain-0.1+-orange.svg)](https://www.langchain.com/)
+[![Pinecone](https://img.shields.io/badge/Pinecone-VectorDB-blueviolet.svg)](https://www.pinecone.io/)
 
-An AI-powered football learning assistant designed to help data analysts, data scientists, and developers with little or no football background understand football analytics concepts, terminology, and match events through Retrieval-Augmented Generation (RAG).
-
-Football Analytics RAG bridges the gap between technical data skills and football knowledge by providing contextual explanations of football concepts such as expected goals (xG), progressive passes, PPDA, tactical principles, player roles, and event definitions used across football data providers.
-
----
 
 ## Overview
 
-Football Analytics RAG is a Streamlit application that acts as an interactive tutor for football analytics.
+Football Analytics RAG is a Flask-based AI learning assistant designed to bridge the gap between technical data skills and football knowledge. The platform helps data analysts, data scientists, developers, and beginners with limited football backgrounds understand football analytics concepts, terminology, tactical ideas, and event data definitions.
 
-The assistant retrieves relevant information from a curated football knowledge base and uses a large language model to generate accurate, context-aware explanations. Users can ask questions about football terminology, analytics metrics, tactical concepts, and match events while receiving responses tailored to their knowledge level.
+By combining Retrieval-Augmented Generation (RAG) with a curated knowledge base, the system converts complex football analytics concepts into clear, accessible explanations tailored to different experience levels.
 
-The project is designed for:
+## Motivation
 
-- Data analysts entering the football analytics field.
-- Developers and data scientists who want to apply their technical skills to football.
-- Football enthusiasts who want to understand the analytical side of the game.
+Football analytics exists at the intersection of two challenging domains:
 
-The goal is to reduce the barrier to entry into football analytics by making complex football concepts easier to understand.
+- **Technical skills** - Data analysis, statistics, programming, and machine learning
+- **Football knowledge** - Tactical understanding, terminology, positional play, and game dynamics
 
----
+Many talented analysts possess strong technical skills but struggle with football-specific terminology and concepts. Conversely, football enthusiasts often want to understand analytical approaches but lack the technical framework. Football Analytics RAG addresses this gap by providing an intelligent assistant that explains football analytics concepts in context, making the field more accessible to both groups.
 
-# Motivation
+## Features
 
-Football analytics has grown rapidly, but entering the field requires understanding both data and football.
+- **Conversational Assistant**: Interactive chat interface for asking football analytics questions
+- **RAG-based Retrieval**: Contextually relevant knowledge retrieval from a curated knowledge base
+- **Personalized Explanations**: Responses tailored to user experience level (beginner to advanced)
+- **Football Terminology**: Clear explanations of football-specific terms and concepts
+- **Tactical Analysis**: Understanding of formations, playing styles, and strategic concepts
+- **Event Definitions**: Explanations of football data provider event types and metrics
+- **Vector Search**: Semantic similarity search using Pinecone vector database
+- **Session Management**: Maintains conversation context for follow-up questions
+- **LangSmith Integration**: Comprehensive monitoring and tracing for debugging and optimization
 
-Many analysts have strong technical backgrounds but struggle with football-specific concepts, while football enthusiasts often understand the game but lack familiarity with analytical terminology.
+## System Architecture
 
-Concepts such as:
-
-- Expected Goals (xG)
-- Expected Assists (xA)
-- Progressive passes
-- Pressing metrics
-- Possession value
-- Player roles
-- Event definitions
-
-often require knowledge that is spread across different sources, including provider documentation, research papers, and football analytics communities.
-
-Football Analytics RAG brings these concepts together into a single conversational learning assistant, helping users develop the football knowledge required to work with football data.
-
----
-
-# Features
-
-- Natural language football analytics assistant.
-- Retrieval-Augmented Generation pipeline using a football knowledge base.
-- Streamlit-based interactive chat interface.
-- Synthetic user profiles for testing different knowledge levels.
-- Personalized responses based on user experience and learning goals.
-- Retrieval of football terminology, metrics, tactical concepts, and event definitions.
-- Streaming responses for improved user experience.
-- Session-based conversation memory.
-- Vector similarity search for relevant football context.
-
----
-
-# Technologies Used
-
-| Category | Technology |
-|---|---|
-| Programming Language | Python 3.10+ |
-| User Interface | Streamlit |
-| LLM Framework | LangChain |
-| Retrieval Approach | Retrieval-Augmented Generation (RAG) |
-| Vector Database | Chroma |
-| Embeddings | Configurable embedding provider |
-| Language Model | Configurable LLM provider |
-| Data Processing | Python libraries |
-| Monitoring | LangSmith |
-
----
-
-# System Architecture
+### RAG Pipeline Architecture
 
 ```mermaid
-flowchart LR
-
-A[User Question] --> B[Streamlit Chat Interface]
-
-B --> C[User Profile]
-B --> D[Query Embedding]
-
-D --> E[Vector Database]
-
-E --> F[Retrieved Football Knowledge]
-
-C --> G[Prompt Construction]
-F --> G
-
-G --> H[Large Language Model]
-
-H --> I[Generated Response]
-
-I --> B
-
-
-subgraph Knowledge Base Creation
-
-J[Football Documents] --> K[Document Processing]
-
-K --> L[Text Chunking]
-
-L --> M[Embedding Generation]
-
-M --> E
-
-end
+graph TD
+    A[User Question] --> B[Flask Web Interface]
+    B --> C[User Profile + Query Processing]
+    C --> D[Embedding Generation]
+    D --> E[Pinecone Vector Database]
+    E --> F[Retrieved Football Knowledge]
+    F --> G[LangChain Prompt Construction]
+    G --> H[Large Language Model]
+    H --> I[Generated Response]
