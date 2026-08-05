@@ -8,14 +8,18 @@ load_dotenv()
 
 embeddings = download_embeddings()
 
+
+# Connect to new Pinecone index
 docsearch = PineconeVectorStore.from_existing_index(
-    index_name="footy-bot",
+    index_name="football-knowledge-base",
     embedding=embeddings
 )
 
 
 retriever = docsearch.as_retriever(
-    search_kwargs={"k":5}
+    search_kwargs={
+        "k": 5
+    }
 )
 
 
@@ -28,5 +32,8 @@ for i, doc in enumerate(docs):
 
     print("\n------------")
     print("DOCUMENT", i+1)
+
     print(doc.page_content[:500])
+
+    print("\nMETADATA:")
     print(doc.metadata)

@@ -10,22 +10,44 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 
 from typing import List
-
+import os
 
 
 # --------------------------------------------------
-# Load PDF files
+# Load PDF files with category metadata
 # --------------------------------------------------
 
 def load_pdf_file(data):
 
-    loader = DirectoryLoader(
-        data,
-        glob="*.pdf",
-        loader_cls=PyPDFLoader
-    )
+    documents = []
 
-    documents = loader.load()
+    for category in os.listdir(data):
+
+        category_path = os.path.join(data, category)
+
+        # Only process folders
+        if os.path.isdir(category_path):
+
+            loader = DirectoryLoader(
+                category_path,
+                glob="*.pdf",
+                loader_cls=PyPDFLoader
+            )
+
+            docs = loader.load()
+
+            for doc in docs:
+
+                doc.metadata.update(
+                    {
+                        "category": category,
+                        "source": os.path.basename(
+                            doc.metadata.get("source", "")
+                        )
+                    }
+                )
+
+            documents.extend(docs)
 
     return documents
 
@@ -39,10 +61,6 @@ def filter_to_minimal_docs(
     docs: List[Document]
 ) -> List[Document]:
 
-    """
-    Keeps only useful metadata and page content.
-    """
-
     minimal_docs = []
 
     for doc in docs:
@@ -51,7 +69,8 @@ def filter_to_minimal_docs(
             Document(
                 page_content=doc.page_content,
                 metadata={
-                    "source": doc.metadata.get("source")
+                    "source": doc.metadata.get("source"),
+                    "category": doc.metadata.get("category")
                 }
             )
         )
@@ -68,7 +87,7 @@ def text_split(extracted_data):
 
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
-        chunk_overlap=20
+        chunk_overlap=50
     )
 
     text_chunks = text_splitter.split_documents(

@@ -1,12 +1,18 @@
 from flask import Flask, render_template, request
+
 from src.helper import download_embeddings
 from langchain_pinecone import PineconeVectorStore
 from langchain_groq import ChatGroq
+
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
+
 from langchain_core.prompts import ChatPromptTemplate
+
 from dotenv import load_dotenv
+
 from src.prompt import system_prompt
+
 import os
 
 
@@ -23,15 +29,21 @@ app = Flask(__name__)
 
 load_dotenv()
 
+
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 
 if not PINECONE_API_KEY:
-    raise ValueError("Missing PINECONE_API_KEY in environment variables")
+    raise ValueError(
+        "Missing PINECONE_API_KEY in environment variables"
+    )
+
 
 if not GROQ_API_KEY:
-    raise ValueError("Missing GROQ_API_KEY in environment variables")
+    raise ValueError(
+        "Missing GROQ_API_KEY in environment variables"
+    )
 
 
 os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
@@ -51,7 +63,7 @@ embeddings = download_embeddings()
 # Pinecone Vector Database
 # --------------------------------------------------
 
-index_name = "footy-bot"
+index_name = "football-knowledge-base"
 
 
 docsearch = PineconeVectorStore.from_existing_index(
@@ -68,7 +80,7 @@ docsearch = PineconeVectorStore.from_existing_index(
 retriever = docsearch.as_retriever(
     search_type="similarity",
     search_kwargs={
-        "k": 3
+        "k": 5
     }
 )
 
@@ -80,13 +92,13 @@ retriever = docsearch.as_retriever(
 
 chatModel = ChatGroq(
     model="llama-3.3-70b-versatile",
-    temperature=0.2
+    temperature=0.2,
 )
 
 
 
 # --------------------------------------------------
-# RAG Prompt
+# Prompt
 # --------------------------------------------------
 
 prompt = ChatPromptTemplate.from_messages(
@@ -127,7 +139,10 @@ rag_chain = create_retrieval_chain(
 
 @app.route("/")
 def index():
-    return render_template("chat.html")
+
+    return render_template(
+        "chat.html"
+    )
 
 
 
@@ -140,10 +155,13 @@ def chat():
 
 
         if not msg:
+
             return "Please enter a question."
 
 
-        print("\nUser Question:")
+
+        print("\n========================")
+        print("USER QUESTION:")
         print(msg)
 
 
@@ -161,8 +179,19 @@ def chat():
         )
 
 
-        print("\nFooty Bot Response:")
+        print("\nFOOTY BOT RESPONSE:")
         print(answer)
+
+
+
+        # Debug retrieved sources
+        print("\nRETRIEVED SOURCES:")
+
+        for doc in response.get("context", []):
+
+            print("----------------")
+            print(doc.metadata)
+
 
 
         return answer
