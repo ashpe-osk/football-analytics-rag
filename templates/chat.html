@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Footy Intelligence · Analytics Chat</title>
+    <title>Debra · Football Knowledge</title>
 
     <!-- Bootstrap 4 + Font Awesome -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
@@ -16,338 +16,58 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        * { box-sizing: border-box; }
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            background-color: #0b0f15;
-            font-family: 'Inter', sans-serif;
-            color: #e9edf2;
-            overflow: hidden;
-        }
-        .container-fluid.h-100 {
-            background: radial-gradient(circle at 20% 30%, #141b24, #0b0f15);
-            padding: 16px;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .chat {
-            padding: 0;
-            height: 100%;
-            max-height: 750px;
-            width: 100%;
-        }
-
-        /* ── card ── */
-        .card {
-            background: #161e28;
-            border: 1px solid #2a3542;
-            border-radius: 24px;
-            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.8);
-            overflow: hidden;
-            backdrop-filter: blur(2px);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* ── header ── */
-        .msg_head {
-            background: #1a232f;
-            border-bottom: 1px solid #2a3847;
-            padding: 16px 24px;
-            flex-shrink: 0;
-        }
-        .user_img {
-            width: 44px;
-            height: 44px;
-            border: 2px solid #3b8cbf;
-            background: #1e2a36;
-            padding: 4px;
-        }
-        .user_info span {
-            font-weight: 600;
-            font-size: 1.2rem;
-            color: #f0f4fa;
-            letter-spacing: -0.2px;
-        }
-        .user_info p {
-            font-size: 0.78rem;
-            color: #8fa5bf;
-            margin: 0;
-            font-weight: 400;
-            letter-spacing: 0.2px;
-        }
-        .online_icon {
-            background: #2ecc71;
-            border: 2px solid #1a232f;
-        }
-
-        /* ── chat body ── */
-        .msg_card_body {
-            background: #111a22;
-            padding: 20px 20px 12px;
-            flex: 1 1 auto;
-            overflow-y: auto;
-            min-height: 0;
-            scroll-behavior: smooth;
-        }
-        .msg_card_body::-webkit-scrollbar {
-            width: 5px;
-        }
-        .msg_card_body::-webkit-scrollbar-track {
-            background: #1a232f;
-        }
-        .msg_card_body::-webkit-scrollbar-thumb {
-            background: #3b5a7a;
-            border-radius: 12px;
-        }
-
-        /* ── messages ── */
-        .msg_cotainer {
-            background: #1f2b38;
-            border-radius: 16px 16px 16px 4px;
-            padding: 14px 18px;
-            color: #e3eaf1;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            max-width: 85%;
-            border: 1px solid #2d3d4e;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .msg_cotainer_send {
-            background: #1f3a4b;
-            border-radius: 16px 16px 4px 16px;
-            padding: 14px 18px;
-            color: #eef4fa;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            max-width: 85%;
-            border: 1px solid #2f5068;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-        .msg_time, .msg_time_send {
-            font-size: 0.65rem;
-            color: #7b93af;
-            margin-top: 6px;
-            display: block;
-            letter-spacing: 0.2px;
-        }
-        .msg_time_send {
-            color: #7fa3c0;
-            text-align: right;
-        }
-        .img_cont_msg {
-            margin-right: 10px;
-            margin-left: 4px;
-            flex-shrink: 0;
-        }
-        .img_cont_msg img {
-            width: 34px;
-            height: 34px;
-            border: 1px solid #3b5a7a;
-            background: #1e2a36;
-            padding: 2px;
-        }
-
-        /* ── suggestions ── */
-        .suggestions-wrapper {
-            padding: 10px 16px 6px;
-            background: #0f1720;
-            border-top: 1px solid #1f2d3a;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-        .suggestion-chip {
-            background: #1f2d3d;
-            border: 1px solid #2f4458;
-            border-radius: 40px;
-            padding: 5px 14px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #b6ccdf;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            letter-spacing: 0.2px;
-            white-space: nowrap;
-        }
-        .suggestion-chip:hover {
-            background: #2b3f55;
-            border-color: #4a7a9c;
-            color: #fff;
-            transform: scale(1.02);
-        }
-
-        /* ── typing indicator ── */
-        .typing-indicator {
-            display: none;
-            padding: 6px 0 6px 16px;
-            color: #8ba3be;
-            font-size: 0.85rem;
-            font-weight: 400;
-            background: transparent;
-            flex-shrink: 0;
-        }
-        .typing-indicator .dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: #6b8fb0;
-            border-radius: 50%;
-            margin: 0 3px;
-            animation: pulse 1.2s infinite ease-in-out;
-        }
-        .typing-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes pulse {
-            0%, 60%, 100% { transform: scale(0.6); opacity: 0.4; }
-            30% { transform: scale(1.2); opacity: 1; }
-        }
-
-        /* ── input footer ── */
-        .card-footer {
-            background: #121c27;
-            border-top: 1px solid #263440;
-            padding: 12px 20px;
-            flex-shrink: 0;
-        }
-        .type_msg {
-            background: #1b2633;
-            border: 1px solid #2b3d4f;
-            border-radius: 40px;
-            color: #eef4fa;
-            padding: 12px 20px;
-            font-size: 0.9rem;
-            font-weight: 400;
-            transition: border 0.2s;
-        }
-        .type_msg:focus {
-            background: #1e2b3a;
-            border-color: #4a7fa5;
-            box-shadow: 0 0 0 3px rgba(58, 130, 180, 0.2);
-            color: #fff;
-        }
-        .type_msg::placeholder {
-            color: #6e8aa8;
-            font-weight: 300;
-            letter-spacing: 0.2px;
-        }
-        .send_btn {
-            background: #1f3d54;
-            border: 1px solid #2b5575;
-            border-radius: 40px;
-            padding: 10px 18px;
-            margin-left: 10px;
-            color: #d4e4f5;
-            transition: 0.15s;
-        }
-        .send_btn:hover {
-            background: #2a5270;
-            border-color: #3f7ba3;
-            color: #fff;
-        }
-        .send_btn i { font-size: 1.2rem; }
-
-        /* ── markdown ── */
-        .msg_cotainer h1, .msg_cotainer h2, .msg_cotainer h3,
-        .msg_cotainer h4, .msg_cotainer h5, .msg_cotainer h6 {
-            font-weight: 600;
-            margin: 0.5rem 0 0.2rem;
-            color: #dbe7f5;
-        }
-        .msg_cotainer h2 {
-            font-size: 1.2rem;
-            border-bottom: 1px solid #2d4055;
-            padding-bottom: 4px;
-        }
-        .msg_cotainer h3 {
-            font-size: 1.05rem;
-        }
-        .msg_cotainer ul, .msg_cotainer ol {
-            padding-left: 1.2rem;
-            margin: 0.3rem 0;
-        }
-        .msg_cotainer li { margin-bottom: 2px; }
-        .msg_cotainer p { margin: 0.3rem 0; }
-        .msg_cotainer strong { color: #d6e5f5; }
-        .msg_cotainer code {
-            background: #0d1a26;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            color: #b3d1ed;
-        }
-
-        /* ── empty state ── */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            min-height: 200px;
-            text-align: center;
-            padding: 20px;
-            color: #6f8aa8;
-        }
-        .empty-state i {
-            font-size: 3rem;
-            color: #2c4b63;
-            margin-bottom: 16px;
-        }
-        .empty-state h5 {
-            color: #b0c9e0;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
-        .empty-state p {
-            max-width: 320px;
-            font-size: 0.9rem;
-        }
-
-        /* ── responsive ── */
-        @media (max-width: 576px) {
-            .container-fluid.h-100 { padding: 8px; }
-            .msg_cotainer, .msg_cotainer_send { max-width: 92%; }
-            .suggestion-chip { font-size: 0.7rem; padding: 4px 10px; }
-            .msg_head { padding: 12px 16px; }
-            .user_info span { font-size: 1rem; }
-        }
-        @media (max-height: 650px) {
-            .msg_card_body { min-height: 180px; }
-            .suggestions-wrapper { padding: 6px 12px; }
-            .card-footer { padding: 8px 16px; }
-            .type_msg { padding: 8px 16px; font-size: 0.85rem; }
-        }
-    </style>
 </head>
 <body>
 
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="confirm-modal">
+    <div class="confirm-modal-content">
+        <i class="fas fa-trash-alt" style="font-size: 2rem; color: #EF4444; margin-bottom: 12px;"></i>
+        <h4>Clear conversation history?</h4>
+        <p>This action will permanently remove all messages from the current session. This cannot be undone.</p>
+        <div class="confirm-modal-actions">
+            <button class="btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+            <button class="btn-confirm" onclick="clearChatHistory()">Clear History</button>
+        </div>
+    </div>
+</div>
+
 <div class="container-fluid h-100">
     <div class="row justify-content-center h-100 w-100">
-        <div class="col-md-8 col-xl-6 chat">
+        <div class="chat-wrapper">
 
-            <div class="card">
+            <div class="card" id="mainCard">
 
                 <!-- ─── HEADER ─── -->
                 <div class="card-header msg_head">
-                    <div class="d-flex bd-highlight align-items-center">
-                        <div class="img_cont">
-                            <img src="https://cdn-icons-png.flaticon.com/512/861/861512.png"
-                                 class="rounded-circle user_img" alt="Footy Intelligence">
-                            <span class="online_icon"></span>
+                    <div class="d-flex bd-highlight align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <div class="img_cont">
+                                <img src="https://cdn-icons-png.flaticon.com/512/861/861512.png"
+                                     class="rounded-circle user_img" alt="Debra">
+                                <span class="online_icon"></span>
+                            </div>
+                            <div class="user_info ml-2">
+                                <span>Debra</span>
+                                <p>Your football knowledge companion.</p>
+                            </div>
                         </div>
-                        <div class="user_info ml-2">
-                            <span>Footy Intelligence</span>
-                            <p>Your bridge between football data and tactical understanding</p>
+                        <div class="d-flex align-items-center header-actions">
+                            <!-- Theme Toggle -->
+                            <button class="theme-toggle-btn" id="themeToggle" title="Toggle theme">
+                                <i class="fas fa-moon"></i>
+                            </button>
+                            
+                            <!-- History Indicator -->
+                            <span class="history-indicator" id="historyIndicator">
+                                <i class="fas fa-database"></i>
+                                <span id="messageCount">0</span>
+                            </span>
+                            
+                            <!-- Clear Button -->
+                            <button class="clear-chat-btn" onclick="openConfirmModal()">
+                                <i class="fas fa-eraser"></i> Clear
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -355,24 +75,37 @@
                 <!-- ─── MESSAGE BODY ─── -->
                 <div id="messageFormeight" class="card-body msg_card_body">
                     <div id="emptyState" class="empty-state">
-                        <i class="fas fa-chart-line"></i>
-                        <h5>Ask anything about football analytics</h5>
-                        <p>Explore xG, pressing, progressive passes, key passes, xA, and more.</p>
+                        <div class="welcome-content">
+                            <div class="welcome-icon">
+                                <i class="fas fa-futbol"></i>
+                            </div>
+                            <h2>Welcome, I'm <span style="color: #EC7D23;">Debra</span></h2>
+                            <div class="welcome-divider"></div>
+                            <p class="welcome-description">
+                                Your guide to understanding football. Football is more than goals and highlights. 
+                                I help you discover the ideas behind the game, from tactics and player movements 
+                                to the numbers that tell the hidden story.
+                            </p>
+                            <p class="welcome-cta">
+                                <i class="fas fa-arrow-right"></i> Ask me anything about the beautiful game
+                            </p>
+                        </div>
                     </div>
+                    <div id="messageList"></div>
                 </div>
 
                 <!-- ─── SUGGESTIONS ─── -->
                 <div class="suggestions-wrapper" id="suggestionChips">
-                    <span class="suggestion-chip" data-question="What is xG?">⚽ xG</span>
-                    <span class="suggestion-chip" data-question="Explain progressive passes">↗️ Progressive passes</span>
-                    <span class="suggestion-chip" data-question="How is pressing measured?">⏱️ Pressing</span>
-                    <span class="suggestion-chip" data-question="What is a key pass?">🔑 Key pass</span>
-                    <span class="suggestion-chip" data-question="Explain expected assists (xA)">🎯 xA</span>
+                    <span class="suggestion-chip" data-question="Explain xG">Explain xG</span>
+                    <span class="suggestion-chip" data-question="What is PPDA?">What is PPDA?</span>
+                    <span class="suggestion-chip" data-question="How are events recorded in football?">How are events recorded in football?</span>
+                    <span class="suggestion-chip" data-question="What is a passing network?">What is a passing network?</span>
+                    <span class="suggestion-chip" data-question="Explain progressive passes">Explain progressive passes</span>
                 </div>
 
                 <!-- ─── TYPING INDICATOR ─── -->
                 <div id="typingIndicator" class="typing-indicator">
-                    <span style="margin-right:6px;">Footy Intelligence is thinking</span>
+                    <span class="typing-text">Just a moment...</span>
                     <span class="dot"></span><span class="dot"></span><span class="dot"></span>
                 </div>
 
@@ -380,11 +113,11 @@
                 <div class="card-footer">
                     <form id="messageArea" class="input-group">
                         <input type="text" id="text" name="msg"
-                               placeholder="Ask about xG, pressing, player roles, tactics, or football metrics..."
+                               placeholder="Ask about tactics, metrics, or player roles..."
                                autocomplete="off" class="form-control type_msg" required>
                         <div class="input-group-append">
                             <button type="submit" id="send" class="input-group-text send_btn">
-                                <i class="fas fa-location-arrow"></i>
+                                <i class="fas fa-paper-plane"></i>
                             </button>
                         </div>
                     </form>
@@ -397,6 +130,24 @@
 
 <script>
     $(document).ready(function() {
+        // ─── Theme Toggle ───
+        let isDarkTheme = true;
+        $('#themeToggle').on('click', function() {
+            isDarkTheme = !isDarkTheme;
+            if (isDarkTheme) {
+                $('body').removeClass('light-theme');
+                $('#mainCard').removeClass('light-theme');
+                $(this).html('<i class="fas fa-moon"></i>');
+            } else {
+                $('body').addClass('light-theme');
+                $('#mainCard').addClass('light-theme');
+                $(this).html('<i class="fas fa-sun"></i>');
+            }
+        });
+
+        // ─── Load chat history ───
+        loadChatHistory();
+        updateMessageCount();
 
         // ─── suggestion chips ───
         $('.suggestion-chip').on('click', function() {
@@ -414,6 +165,7 @@
             const rawText = $("#text").val().trim();
             if (!rawText) return;
 
+            // Remove empty state if it exists
             $('#emptyState').remove();
 
             const date = new Date();
@@ -421,29 +173,35 @@
             const minute = String(date.getMinutes()).padStart(2, '0');
             const str_time = hour + ":" + minute;
 
-            // user message
+            // User message - with distinct styling and clear icon
             const userHtml = `
-                <div class="d-flex justify-content-end mb-3">
+                <div class="d-flex justify-content-end mb-3 message-row user-message">
                     <div class="msg_cotainer_send">
                         ${rawText}
                         <span class="msg_time_send">${str_time}</span>
                     </div>
                     <div class="img_cont_msg ml-2">
-                        <img src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" class="rounded-circle user_img_msg" alt="user">
+                        <div class="user-avatar-circle">
+                            <i class="fas fa-user"></i>
+                        </div>
                     </div>
                 </div>
             `;
-            $("#messageFormeight").append(userHtml);
+            $("#messageList").append(userHtml);
+            
+            // Save to history
+            saveMessage('user', rawText, str_time);
+            
             $("#text").val("");
 
             const msgBody = $("#messageFormeight");
             msgBody.scrollTop(msgBody[0].scrollHeight);
 
-            // typing indicator
-            $("#typingIndicator").css('display', 'block');
+            // Show typing indicator
+            $("#typingIndicator").css('display', 'flex');
             msgBody.scrollTop(msgBody[0].scrollHeight);
 
-            // ─── AJAX ───
+            // ─── AJAX Request ───
             $.ajax({
                 data: { msg: rawText },
                 type: "POST",
@@ -463,10 +221,13 @@
                     renderedHtml = data.replace(/\n/g, "<br>");
                 }
 
+                // Bot message - with distinct styling and clear icon
                 const botHtml = `
-                    <div class="d-flex justify-content-start mb-3">
+                    <div class="d-flex justify-content-start mb-3 message-row bot-message">
                         <div class="img_cont_msg mr-2">
-                            <img src="https://cdn-icons-png.flaticon.com/512/861/861512.png" class="rounded-circle user_img_msg" alt="Footy Intelligence">
+                            <div class="bot-avatar-circle">
+                                <i class="fas fa-robot"></i>
+                            </div>
                         </div>
                         <div class="msg_cotainer">
                             ${renderedHtml}
@@ -474,26 +235,159 @@
                         </div>
                     </div>
                 `;
-                $("#messageFormeight").append(botHtml);
+                $("#messageList").append(botHtml);
+                
+                // Save assistant response to history
+                saveMessage('assistant', data, str_time);
+                
                 msgBody.scrollTop(msgBody[0].scrollHeight);
+                updateMessageCount();
             })
-            .fail(function() {
+            .fail(function(xhr, status, error) {
                 $("#typingIndicator").css('display', 'none');
+                let errorMsg = 'Unable to process your request. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMsg = xhr.responseJSON.error;
+                }
                 const errorHtml = `
-                    <div class="d-flex justify-content-start mb-3">
+                    <div class="d-flex justify-content-start mb-3 message-row bot-message">
                         <div class="img_cont_msg mr-2">
-                            <img src="https://cdn-icons-png.flaticon.com/512/861/861512.png" class="rounded-circle user_img_msg" alt="Footy Intelligence">
+                            <div class="bot-avatar-circle">
+                                <i class="fas fa-robot"></i>
+                            </div>
                         </div>
                         <div class="msg_cotainer" style="background:#2e1f2a; border-color:#5a3a4a;">
-                            ⚠️ Sorry, I couldn't process that request. Please try again.
+                            <i class="fas fa-exclamation-triangle" style="color: #EF4444; margin-right: 8px;"></i> ${errorMsg}
                             <span class="msg_time">${str_time}</span>
                         </div>
                     </div>
                 `;
-                $("#messageFormeight").append(errorHtml);
+                $("#messageList").append(errorHtml);
                 msgBody.scrollTop(msgBody[0].scrollHeight);
             });
         });
+
+        // ─── Enter key to submit ───
+        $('#text').on('keypress', function(e) {
+            if (e.which === 13 && !e.shiftKey) {
+                e.preventDefault();
+                $('#messageArea').submit();
+            }
+        });
+    });
+
+    // ─── Chat History Functions ───
+    function saveMessage(role, content, timestamp) {
+        let history = JSON.parse(localStorage.getItem('debi_chat_history') || '[]');
+        history.push({
+            role: role,
+            content: content,
+            timestamp: timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            date: new Date().toISOString()
+        });
+        if (history.length > 200) {
+            history = history.slice(-200);
+        }
+        localStorage.setItem('debi_chat_history', JSON.stringify(history));
+        updateMessageCount();
+    }
+
+    function loadChatHistory() {
+        const history = JSON.parse(localStorage.getItem('debi_chat_history') || '[]');
+        if (history.length === 0) return;
+        
+        $('#emptyState').remove();
+        
+        history.forEach(msg => {
+            const isUser = msg.role === 'user';
+            const html = isUser ? `
+                <div class="d-flex justify-content-end mb-3 message-row user-message">
+                    <div class="msg_cotainer_send">
+                        ${msg.content}
+                        <span class="msg_time_send">${msg.timestamp}</span>
+                    </div>
+                    <div class="img_cont_msg ml-2">
+                        <div class="user-avatar-circle">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                </div>
+            ` : `
+                <div class="d-flex justify-content-start mb-3 message-row bot-message">
+                    <div class="img_cont_msg mr-2">
+                        <div class="bot-avatar-circle">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                    </div>
+                    <div class="msg_cotainer">
+                        ${typeof marked !== 'undefined' ? marked.parse(msg.content) : msg.content.replace(/\n/g, "<br>")}
+                        <span class="msg_time">${msg.timestamp}</span>
+                    </div>
+                </div>
+            `;
+            $("#messageList").append(html);
+        });
+        
+        const msgBody = $("#messageFormeight");
+        msgBody.scrollTop(msgBody[0].scrollHeight);
+    }
+
+    function clearChatHistory() {
+        localStorage.removeItem('debi_chat_history');
+        $('#messageList').empty();
+        const emptyHtml = `
+            <div id="emptyState" class="empty-state">
+                <div class="welcome-content">
+                    <div class="welcome-icon">
+                        <i class="fas fa-futbol"></i>
+                    </div>
+                    <h2>Welcome, I'm <span style="color: #EC7D23;">Debra</span></h2>
+                    <div class="welcome-divider"></div>
+                    <p class="welcome-description">
+                        Your guide to understanding football. Football is more than goals and highlights. 
+                        I help you discover the ideas behind the game, from tactics and player movements 
+                        to the numbers that tell the hidden story.
+                    </p>
+                    <p class="welcome-cta">
+                        <i class="fas fa-arrow-right"></i> Ask me anything about the beautiful game
+                    </p>
+                </div>
+            </div>
+        `;
+        $('#messageList').append(emptyHtml);
+        updateMessageCount();
+        closeConfirmModal();
+    }
+
+    function updateMessageCount() {
+        const history = JSON.parse(localStorage.getItem('debi_chat_history') || '[]');
+        $('#messageCount').text(history.length);
+    }
+
+    function openConfirmModal() {
+        const history = JSON.parse(localStorage.getItem('debi_chat_history') || '[]');
+        if (history.length === 0) return;
+        $('#confirmModal').addClass('active');
+    }
+
+    function closeConfirmModal() {
+        $('#confirmModal').removeClass('active');
+    }
+
+    $(document).on('click', '#confirmModal', function(e) {
+        if (e.target === this) {
+            closeConfirmModal();
+        }
+    });
+
+    $(document).on('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeConfirmModal();
+        }
+    });
+
+    $(window).on('load', function() {
+        $('#text').focus();
     });
 </script>
 
