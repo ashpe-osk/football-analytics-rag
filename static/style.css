@@ -15,16 +15,13 @@ html, body {
     margin: 0;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     transition: background-color 0.3s ease, color 0.3s ease;
-    overflow: hidden;
+    overflow: hidden; /* prevent page scroll, chat scrolls internally */
 }
-/* Fallback custom property, set by JS to the real visible viewport height
-   (handles mobile browser address bars + on-screen keyboard resizing) */
+
 :root {
+    /* real viewport height set by JS */
     --app-height: 100%;
-    /* Single source of truth for left/right padding, shared by the header,
-       message body, suggestion chips, and input footer, so their content
-       always lines up on the same edge. Override only this at each
-       breakpoint below instead of each section's padding separately. */
+    /* consistent horizontal padding for all sections */
     --side-pad: 24px;
 }
 
@@ -38,13 +35,24 @@ body.light-theme {
     color: #1A1A2E;
 }
 
+/* ─── Main Wrapper ─── */
+.container-fluid.h-100 {
+    height: 100vh;                 /* fallback */
+    height: calc(var(--app-height) * 1);
+    padding: 12px;                 /* space around the chat card */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .chat-wrapper {
     width: 100%;
     max-width: 1000px;
-    height: 90vh;
-    height: calc(var(--app-height) * 0.9);
-    max-height: 850px;
+    height: 100%;                 /* fill the container */
+    max-height: 850px;            /* optional, but not hard limit */
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .card {
@@ -110,7 +118,7 @@ body.light-theme .online_icon {
 }
 .user_info {
     margin-left: 15px;
-    min-width: 0; /* allow text truncation instead of overlapping siblings */
+    min-width: 0;
 }
 .user_info span {
     font-size: 20px;
@@ -139,19 +147,16 @@ body.light-theme .user_info p {
     color: #6B7280;
 }
 
-/* Header row: wrap as a safety net so on any width where content genuinely
-   doesn't fit, it moves to a clean second line instead of overlapping or
-   getting clipped by .card's overflow: hidden. */
 .header-row {
     flex-wrap: wrap;
     row-gap: 6px;
 }
 .header-identity {
-    min-width: 0; /* lets the name/subtitle truncate rather than push siblings off */
+    min-width: 0;
     flex-shrink: 1;
 }
 .img_cont {
-    flex-shrink: 0; /* logo never shrinks or gets squeezed */
+    flex-shrink: 0;
 }
 
 .header-actions {
@@ -246,7 +251,7 @@ body.light-theme .clear-chat-btn:hover {
     background: rgba(11, 15, 18, 0.95);
     padding: 20px var(--side-pad) 12px;
     flex: 1 1 auto;
-    min-height: 0;
+    min-height: 0;           /* crucial: allows shrinking */
     scroll-behavior: smooth;
     backdrop-filter: blur(5px);
 }
@@ -277,7 +282,6 @@ body.light-theme .msg_card_body::-webkit-scrollbar-track {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* User Message - Orange theme */
 .user-message .msg_cotainer_send {
     background: rgba(236, 125, 35, 0.12);
     border: 1px solid rgba(236, 125, 35, 0.2);
@@ -293,7 +297,6 @@ body.light-theme .msg_card_body::-webkit-scrollbar-track {
     transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
-/* Bot Message - Dark theme */
 .bot-message .msg_cotainer {
     background: #1e2a32;
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -339,7 +342,6 @@ body.light-theme .msg_time_send {
     color: #a0b8d0;
 }
 
-/* ----- User & Bot Avatar Circles ----- */
 .user-avatar-circle,
 .bot-avatar-circle {
     width: 36px;
@@ -382,9 +384,9 @@ body.light-theme .bot-avatar-circle {
     align-items: center;
     justify-content: center;
     height: 100%;
-    min-height: 350px;
+    min-height: 250px;        /* reduced from 350px */
     text-align: center;
-    padding: 30px;
+    padding: 20px 10px;
 }
 .welcome-content {
     max-width: 600px;
@@ -752,19 +754,15 @@ body.light-theme .btn-cancel:hover {
     background: rgba(0, 0, 0, 0.08);
 }
 
-/* ----- Responsive ----- */
+/* ----- Responsive Refinements ----- */
+
+/* Tablets & small laptops */
 @media (max-width: 768px) {
     :root {
         --side-pad: 16px;
     }
     .container-fluid.h-100 {
-        padding: 12px;
-    }
-    .chat-wrapper {
-        max-width: 100%;
-        height: 95vh;
-        height: calc(var(--app-height) * 0.95);
-        max-height: none;
+        padding: 8px;
     }
     .user-message .msg_cotainer_send,
     .bot-message .msg_cotainer {
@@ -772,7 +770,7 @@ body.light-theme .btn-cancel:hover {
     }
     .suggestion-chip {
         font-size: 0.7rem;
-        padding: 4px 10px;
+        padding: 4px 12px;
     }
     .msg_head {
         padding-top: 12px;
@@ -788,7 +786,7 @@ body.light-theme .btn-cancel:hover {
         gap: 8px;
     }
     .clear-chat-btn {
-        padding: 4px 10px;
+        padding: 4px 12px;
         font-size: 0.7rem;
     }
     .theme-toggle-btn {
@@ -801,9 +799,13 @@ body.light-theme .btn-cancel:hover {
     }
 }
 
+/* Phones */
 @media (max-width: 576px) {
     :root {
         --side-pad: 14px;
+    }
+    .container-fluid.h-100 {
+        padding: 6px;
     }
     .user-message .msg_cotainer_send,
     .bot-message .msg_cotainer {
@@ -817,7 +819,7 @@ body.light-theme .btn-cancel:hover {
     }
     .suggestion-chip {
         font-size: 0.65rem;
-        padding: 4px 8px;
+        padding: 4px 10px;
     }
     .card-footer {
         padding-top: 8px;
@@ -851,22 +853,23 @@ body.light-theme .btn-cancel:hover {
     }
 }
 
-@media (max-width: 480px) {
+/* Very narrow phones (e.g. < 400px) */
+@media (max-width: 400px) {
     :root {
-        --side-pad: 12px;
+        --side-pad: 10px;
     }
     .msg_head {
         padding-top: 10px;
         padding-bottom: 10px;
     }
     .user_info p {
-        display: none; /* hide subtitle to make room on common phone widths */
+        display: none; /* hides subtitle to save space */
     }
     .header-actions {
         gap: 4px;
     }
     .history-indicator {
-        display: none; /* low-priority on narrow screens */
+        display: none;
     }
     .clear-chat-btn span {
         display: none;
@@ -874,70 +877,86 @@ body.light-theme .btn-cancel:hover {
     .clear-chat-btn {
         padding: 6px 8px;
     }
+    .suggestion-chip {
+        font-size: 0.6rem;
+        padding: 3px 8px;
+    }
+    .empty-state {
+        min-height: 150px;
+    }
 }
 
+/* Short viewports (e.g. landscape phones) */
 @media (max-height: 650px) {
     :root {
         --side-pad: 16px;
     }
+    .container-fluid.h-100 {
+        padding: 6px;
+    }
     .msg_card_body {
-        min-height: 150px;
-        padding-top: 12px;
-        padding-bottom: 8px;
+        min-height: 100px;
+        padding-top: 10px;
+        padding-bottom: 6px;
     }
     .suggestions-wrapper {
         padding-top: 4px;
         padding-bottom: 4px;
+        gap: 4px;
+    }
+    .suggestion-chip {
+        font-size: 0.6rem;
+        padding: 3px 8px;
     }
     .card-footer {
-        padding-top: 6px;
-        padding-bottom: 6px;
+        padding-top: 4px;
+        padding-bottom: 4px;
     }
     .type_msg {
-        height: 36px !important;
+        height: 34px !important;
         font-size: 0.8rem;
-        padding-left: 14px !important;
+        padding-left: 12px !important;
     }
     .send_btn {
-        padding: 0 14px;
+        padding: 0 12px;
     }
     .msg_head {
-        padding-top: 10px;
-        padding-bottom: 10px;
+        padding-top: 8px;
+        padding-bottom: 8px;
     }
     .user_img {
-        height: 36px;
-        width: 36px;
+        height: 32px;
+        width: 32px;
     }
     .img_cont {
-        height: 36px;
-        width: 36px;
+        height: 32px;
+        width: 32px;
     }
     .user_info span {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
     }
     .user_info p {
-        font-size: 10px;
+        font-size: 9px;
     }
     .empty-state {
-        min-height: 150px;
-        padding: 16px;
+        min-height: 100px;
+        padding: 10px;
     }
     .welcome-icon {
-        width: 50px;
-        height: 50px;
-        margin-bottom: 12px;
+        width: 40px;
+        height: 40px;
+        margin-bottom: 8px;
     }
     .welcome-icon i {
-        font-size: 1.5rem;
+        font-size: 1.2rem;
     }
     .empty-state h2 {
-        font-size: 1.2rem;
+        font-size: 1rem;
     }
     .user-avatar-circle,
     .bot-avatar-circle {
-        width: 28px;
-        height: 28px;
-        font-size: 0.7rem;
+        width: 24px;
+        height: 24px;
+        font-size: 0.6rem;
     }
 }
