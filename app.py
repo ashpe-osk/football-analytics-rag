@@ -22,78 +22,40 @@ import os
 
 app = Flask(__name__)
 
-
-# --------------------------------------------------
-# Environment Configuration
-# --------------------------------------------------
+print("1. Starting app")
 
 load_dotenv()
-
+print("2. Environment loaded")
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-
-if not PINECONE_API_KEY:
-    raise ValueError(
-        "Missing PINECONE_API_KEY in environment variables"
-    )
-
-
-if not GROQ_API_KEY:
-    raise ValueError(
-        "Missing GROQ_API_KEY in environment variables"
-    )
-
-
-os.environ["PINECONE_API_KEY"] = PINECONE_API_KEY
-os.environ["GROQ_API_KEY"] = GROQ_API_KEY
-
-
-
-# --------------------------------------------------
-# Load Embeddings
-# --------------------------------------------------
-
+print("3. Loading embeddings...")
 embeddings = download_embeddings()
-
-
-
-# --------------------------------------------------
-# Pinecone Vector Database
-# --------------------------------------------------
+print("4. Embeddings loaded")
 
 index_name = "football-knowledge-base"
 
-
+print("5. Connecting to Pinecone...")
 docsearch = PineconeVectorStore.from_existing_index(
     index_name=index_name,
     embedding=embeddings
 )
+print("6. Pinecone connected")
 
-
-
-# --------------------------------------------------
-# Retriever
-# --------------------------------------------------
-
+print("7. Creating retriever...")
 retriever = docsearch.as_retriever(
     search_type="similarity",
-    search_kwargs={
-        "k": 5
-    }
+    search_kwargs={"k": 5}
 )
+print("8. Retriever created")
 
-
-
-# --------------------------------------------------
-# Groq LLM
-# --------------------------------------------------
-
+print("9. Loading Groq...")
 chatModel = ChatGroq(
     model="llama-3.3-70b-versatile",
-    temperature=0.2,
+    temperature=0.2
 )
+print("10. Groq loaded")
 
 
 
