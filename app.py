@@ -34,7 +34,7 @@ print("3. Loading embeddings...")
 embeddings = download_embeddings()
 print("4. Embeddings loaded")
 
-index_name = "football-knowledge-base"
+index_name = "football-knowledge-base-v2"
 
 print("5. Connecting to Pinecone...")
 docsearch = PineconeVectorStore.from_existing_index(

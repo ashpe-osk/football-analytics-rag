@@ -98,7 +98,7 @@ pc = Pinecone(
 )
 
 
-index_name = "football-knowledge-base"
+index_name = "football-knowledge-base-v2"
 
 
 
@@ -113,7 +113,7 @@ if not pc.has_index(index_name):
 
     pc.create_index(
         name=index_name,
-        dimension=384,
+        dimension=1024,
         metric="cosine",
         spec=ServerlessSpec(
             cloud="aws",

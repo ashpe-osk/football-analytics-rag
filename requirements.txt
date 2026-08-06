@@ -7,9 +7,6 @@ langchain-core==0.3.86
 langchain-text-splitters==0.3.11
 langchain-groq==0.2.0
 langchain-pinecone==0.2.8
-langchain-huggingface
 pinecone==7.3.0
 pypdf==5.6.1
-sentence-transformers==4.1.0
-huggingface_hub==0.36.2
 -e .

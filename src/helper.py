@@ -5,8 +5,6 @@ from langchain_community.document_loaders import (
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-from langchain_huggingface import HuggingFaceEmbeddings
-
 from langchain_core.documents import Document
 
 from typing import List
@@ -102,10 +100,12 @@ def text_split(extracted_data):
 # Download HuggingFace embeddings
 # --------------------------------------------------
 
+from langchain_pinecone import PineconeEmbeddings
+
 def download_embeddings():
 
-    embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    embeddings = PineconeEmbeddings(
+        model="multilingual-e5-large"
     )
 
     return embeddings

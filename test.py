@@ -11,7 +11,7 @@ embeddings = download_embeddings()
 
 # Connect to new Pinecone index
 docsearch = PineconeVectorStore.from_existing_index(
-    index_name="football-knowledge-base",
+    index_name="football-knowledge-base-v2",
     embedding=embeddings
 )
 
