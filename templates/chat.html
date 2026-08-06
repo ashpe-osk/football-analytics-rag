@@ -66,7 +66,7 @@
                             
                             <!-- Clear Button -->
                             <button class="clear-chat-btn" onclick="openConfirmModal()">
-                                <i class="fas fa-eraser"></i> Clear
+                                <i class="fas fa-eraser"></i> <span>Clear</span>
                             </button>
                         </div>
                     </div>
@@ -123,6 +123,24 @@
 </div>
 
 <script>
+    // ─── Real viewport height fix ───
+    // Mobile browsers (esp. iOS Safari) calculate `vh` against the viewport
+    // with the address bar hidden, so 90vh/95vh can extend past what's
+    // actually visible, cutting off the input box. This sets an accurate
+    // --app-height custom property (in px) and keeps it updated when the
+    // address bar shows/hides or the on-screen keyboard opens/closes.
+    function setAppHeight() {
+        const vv = window.visualViewport;
+        const h = vv ? vv.height : window.innerHeight;
+        document.documentElement.style.setProperty('--app-height', h + 'px');
+    }
+    setAppHeight();
+    window.addEventListener('resize', setAppHeight);
+    window.addEventListener('orientationchange', setAppHeight);
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', setAppHeight);
+    }
+
     $(document).ready(function() {
         // ─── Theme Toggle ───
         let isDarkTheme = true;
