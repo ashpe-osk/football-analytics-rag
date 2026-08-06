@@ -167,7 +167,7 @@ def chat():
 
 
         return (
-            "Sorry, Footy Bot encountered an error "
+            "Sorry, I encountered an error "
             "while processing your question."
         )
 
