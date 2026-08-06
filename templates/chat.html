@@ -103,12 +103,6 @@
                     <span class="suggestion-chip" data-question="Explain progressive passes">Explain progressive passes</span>
                 </div>
 
-                <!-- ─── TYPING INDICATOR ─── -->
-                <div id="typingIndicator" class="typing-indicator">
-                    <span class="typing-text">Just a moment...</span>
-                    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-                </div>
-
                 <!-- ─── INPUT FOOTER ─── -->
                 <div class="card-footer">
                     <form id="messageArea" class="input-group">
@@ -197,8 +191,21 @@
             const msgBody = $("#messageFormeight");
             msgBody.scrollTop(msgBody[0].scrollHeight);
 
-            // Show typing indicator
-            $("#typingIndicator").css('display', 'flex');
+            // Show typing indicator as the next bubble in the message stream
+            const typingHtml = `
+                <div class="d-flex justify-content-start mb-3 message-row bot-message" id="typingIndicator">
+                    <div class="img_cont_msg mr-2">
+                        <div class="bot-avatar-circle">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                    </div>
+                    <div class="msg_cotainer typing-indicator" style="display:flex;">
+                        <span class="typing-text">Just a moment...</span>
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                    </div>
+                </div>
+            `;
+            $("#messageList").append(typingHtml);
             msgBody.scrollTop(msgBody[0].scrollHeight);
 
             // ─── AJAX Request ───
@@ -208,7 +215,7 @@
                 url: "/get"
             })
             .done(function(data) {
-                $("#typingIndicator").css('display', 'none');
+                $("#typingIndicator").remove();
 
                 let renderedHtml = data;
                 if (typeof marked !== 'undefined') {
@@ -244,7 +251,7 @@
                 updateMessageCount();
             })
             .fail(function(xhr, status, error) {
-                $("#typingIndicator").css('display', 'none');
+                $("#typingIndicator").remove();
                 let errorMsg = 'Unable to process your request. Please try again.';
                 if (xhr.responseJSON && xhr.responseJSON.error) {
                     errorMsg = xhr.responseJSON.error;

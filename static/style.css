@@ -472,18 +472,13 @@ body.light-theme .suggestion-chip:hover {
 
 /* ----- Typing Indicator ----- */
 .typing-indicator {
-    display: none;
-    padding: 8px 16px 6px;
+    padding: 10px 14px;
     color: #94A3B8;
     font-size: 0.85rem;
     font-weight: 400;
-    background: rgba(11, 15, 18, 0.95);
-    flex-shrink: 0;
     align-items: center;
-    backdrop-filter: blur(5px);
 }
 body.light-theme .typing-indicator {
-    background: #F8FAFC;
     color: #6B7280;
 }
 .typing-text {
