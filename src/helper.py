@@ -9,6 +9,7 @@ from langchain_pinecone import PineconeEmbeddings
 from typing import List
 import os
 import re
+import numpy as np
 
 # --------------------------------------------------
 # Load PDF files with category metadata + page numbers
@@ -119,28 +120,51 @@ def deduplicate_documents(documents: List[Document]) -> List[Document]:
     return unique
 
 # --------------------------------------------------
-# Reranker (Cross‑Encoder)
+# Reranker – OPTIONAL (conditional import & environment flag)
 # --------------------------------------------------
 
-from sentence_transformers import CrossEncoder
-import numpy as np
+# Read environment variable: set USE_RERANK=false on Render to save memory
+USE_RERANK = os.getenv("USE_RERANK", "true").lower() == "true"
 
 _reranker = None
 
-def get_reranker(model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"):
+def get_reranker(model_name: str = "cross-encoder/ms-marco-MiniLM-L-2-v2"):
+    """
+    Lazy-loads the cross-encoder only if USE_RERANK is True.
+    If sentence_transformers is not installed, returns None.
+    """
     global _reranker
+    if not USE_RERANK:
+        return None
     if _reranker is None:
-        _reranker = CrossEncoder(model_name, device="cpu")
+        try:
+            from sentence_transformers import CrossEncoder
+            _reranker = CrossEncoder(model_name, device="cpu")
+        except ImportError:
+            print("⚠️ sentence-transformers not installed. Reranking disabled.")
+            return None
     return _reranker
 
-def rerank_documents(query: str, documents: List[Document], top_k: int = 3) -> List[Document]:  # default top_k=3
+def rerank_documents(query: str, documents: List[Document], top_k: int = 3) -> List[Document]:
+    """
+    Rerank documents using a cross-encoder. Falls back to simple top‑k if reranking is disabled or not available.
+    """
     if not documents:
         return []
+    if not USE_RERANK:
+        # No rerank – just return the first top_k (deduplicated first)
+        unique_docs = deduplicate_documents(documents)
+        return unique_docs[:top_k]
+    reranker = get_reranker()
+    if reranker is None:
+        # If reranker couldn't be loaded, fall back
+        unique_docs = deduplicate_documents(documents)
+        return unique_docs[:top_k]
+    # Actual reranking
     unique_docs = deduplicate_documents(documents)
     if not unique_docs:
         return []
     pairs = [(query, doc.page_content) for doc in unique_docs]
-    reranker = get_reranker()
     scores = reranker.predict(pairs)
     scored = sorted(zip(unique_docs, scores), key=lambda x: x[1], reverse=True)
     return [doc for doc, _ in scored[:top_k]]
