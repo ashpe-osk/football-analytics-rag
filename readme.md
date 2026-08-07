@@ -1,4 +1,4 @@
-# Debra – Football Analytics RAG
+# Debra - Football Analytics RAG
 
 An AI-powered football analytics mentor that explains football data concepts, terminology, and tactics through a retrieval-augmented chat interface.
 
