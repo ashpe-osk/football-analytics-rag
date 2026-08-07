@@ -16,6 +16,55 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .sources-toggle {
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px dashed #444;
+            font-size: 0.85rem;
+        }
+        .light-theme .sources-toggle {
+            border-top-color: #ccc;
+        }
+        .sources-toggle button {
+            background: none;
+            border: none;
+            color: #8ab4f8;
+            cursor: pointer;
+            padding: 0;
+            font-size: inherit;
+            font-weight: 500;
+        }
+        .sources-toggle button:hover {
+            text-decoration: underline;
+        }
+        .sources-toggle .sources-content {
+            margin-top: 6px;
+            padding: 6px 10px;
+            background: #1e1e2e;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: #ccc;
+            white-space: pre-line;
+            display: none;
+        }
+        .light-theme .sources-toggle .sources-content {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .sources-toggle .sources-content.show {
+            display: block;
+        }
+        /* Ensure links inside messages are visible */
+        .msg_cotainer a, .msg_cotainer_send a {
+            color: #8ab4f8;
+            text-decoration: underline;
+        }
+        .light-theme .msg_cotainer a, .light-theme .msg_cotainer_send a {
+            color: #1a73e8;
+        }
+    </style>
 </head>
 <body>
 
@@ -53,18 +102,13 @@
                             </div>
                         </div>
                         <div class="d-flex align-items-center header-actions">
-                            <!-- Theme Toggle -->
                             <button class="theme-toggle-btn" id="themeToggle" title="Toggle theme">
                                 <i class="fas fa-moon"></i>
                             </button>
-                            
-                            <!-- History Indicator -->
                             <span class="history-indicator" id="historyIndicator">
                                 <i class="fas fa-database"></i>
                                 <span id="messageCount">0</span>
                             </span>
-                            
-                            <!-- Clear Button -->
                             <button class="clear-chat-btn" onclick="openConfirmModal()">
                                 <i class="fas fa-eraser"></i> <span>Clear</span>
                             </button>
@@ -82,8 +126,8 @@
                             <h2>Welcome, I'm <span style="color: #EC7D23;">Debra</span></h2>
                             <div class="welcome-divider"></div>
                             <p class="welcome-description">
-                                Your guide to understanding football. Football is more than goals and highlights. 
-                                I help you discover the ideas behind the game, from tactics and player movements 
+                                Your guide to understanding football. Football is more than goals and highlights.
+                                I help you discover the ideas behind the game, from tactics and player movements
                                 to the numbers that tell the hidden story.
                             </p>
                             <p class="welcome-cta">
@@ -124,11 +168,6 @@
 
 <script>
     // ─── Real viewport height fix ───
-    // Mobile browsers (esp. iOS Safari) calculate `vh` against the viewport
-    // with the address bar hidden, so 90vh/95vh can extend past what's
-    // actually visible, cutting off the input box. This sets an accurate
-    // --app-height custom property (in px) and keeps it updated when the
-    // address bar shows/hides or the on-screen keyboard opens/closes.
     function setAppHeight() {
         const vv = window.visualViewport;
         const h = vv ? vv.height : window.innerHeight;
@@ -177,7 +216,6 @@
             const rawText = $("#text").val().trim();
             if (!rawText) return;
 
-            // Remove empty state if it exists
             $('#emptyState').remove();
 
             const date = new Date();
@@ -185,7 +223,7 @@
             const minute = String(date.getMinutes()).padStart(2, '0');
             const str_time = hour + ":" + minute;
 
-            // User message - with distinct styling and clear icon
+            // User message
             const userHtml = `
                 <div class="d-flex justify-content-end mb-3 message-row user-message">
                     <div class="msg_cotainer_send">
@@ -200,16 +238,13 @@
                 </div>
             `;
             $("#messageList").append(userHtml);
-            
-            // Save to history
             saveMessage('user', rawText, str_time);
-            
             $("#text").val("");
 
             const msgBody = $("#messageFormeight");
             msgBody.scrollTop(msgBody[0].scrollHeight);
 
-            // Show typing indicator as the next bubble in the message stream
+            // Typing indicator
             const typingHtml = `
                 <div class="d-flex justify-content-start mb-3 message-row bot-message" id="typingIndicator">
                     <div class="img_cont_msg mr-2">
@@ -230,23 +265,59 @@
             $.ajax({
                 data: { msg: rawText },
                 type: "POST",
-                url: "/get"
+                url: "/get",
+                dataType: "json"
             })
             .done(function(data) {
                 $("#typingIndicator").remove();
 
-                let renderedHtml = data;
-                if (typeof marked !== 'undefined') {
-                    try {
-                        renderedHtml = marked.parse(data);
-                    } catch (_) {
-                        renderedHtml = data.replace(/\n/g, "<br>");
-                    }
-                } else {
-                    renderedHtml = data.replace(/\n/g, "<br>");
+                if (data.error) {
+                    const errorHtml = `
+                        <div class="d-flex justify-content-start mb-3 message-row bot-message">
+                            <div class="img_cont_msg mr-2">
+                                <div class="bot-avatar-circle">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                            </div>
+                            <div class="msg_cotainer" style="background:#2e1f2a; border-color:#5a3a4a;">
+                                <i class="fas fa-exclamation-triangle" style="color: #EF4444; margin-right: 8px;"></i> ${data.error}
+                                <span class="msg_time">${str_time}</span>
+                            </div>
+                        </div>
+                    `;
+                    $("#messageList").append(errorHtml);
+                    msgBody.scrollTop(msgBody[0].scrollHeight);
+                    return;
                 }
 
-                // Bot message - with distinct styling and clear icon
+                // Render answer (Markdown)
+                let renderedHtml = data.answer;
+                if (typeof marked !== 'undefined') {
+                    try {
+                        renderedHtml = marked.parse(data.answer);
+                    } catch (_) {
+                        renderedHtml = data.answer.replace(/\n/g, "<br>");
+                    }
+                } else {
+                    renderedHtml = data.answer.replace(/\n/g, "<br>");
+                }
+
+                // Build sources toggle only if actual sources exist
+                let sourcesHtml = '';
+                if (data.sources && data.sources !== "No source metadata available." && data.sources.trim() !== "") {
+                    sourcesHtml = `
+                        <div class="sources-toggle">
+                            <button class="sources-toggle-btn" onclick="toggleSources(this)">
+                                <i class="fas fa-book-open"></i> Show sources
+                            </button>
+                            <div class="sources-content" style="display:none;">
+                                ${data.sources}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Bot message
                 const botHtml = `
                     <div class="d-flex justify-content-start mb-3 message-row bot-message">
                         <div class="img_cont_msg mr-2">
@@ -256,15 +327,15 @@
                         </div>
                         <div class="msg_cotainer">
                             ${renderedHtml}
+                            ${sourcesHtml}
                             <span class="msg_time">${str_time}</span>
                         </div>
                     </div>
                 `;
                 $("#messageList").append(botHtml);
-                
-                // Save assistant response to history
-                saveMessage('assistant', data, str_time);
-                
+
+                saveMessage('assistant', data.answer, str_time);
+
                 msgBody.scrollTop(msgBody[0].scrollHeight);
                 updateMessageCount();
             })
@@ -301,6 +372,20 @@
         });
     });
 
+    // ─── Toggle sources function ───
+    function toggleSources(btn) {
+        const container = $(btn).closest('.sources-toggle');
+        const content = container.find('.sources-content');
+        const isHidden = content.css('display') === 'none';
+        if (isHidden) {
+            content.slideDown(200);
+            $(btn).html('<i class="fas fa-book-open"></i> Hide sources');
+        } else {
+            content.slideUp(200);
+            $(btn).html('<i class="fas fa-book-open"></i> Show sources');
+        }
+    }
+
     // ─── Chat History Functions ───
     function saveMessage(role, content, timestamp) {
         let history = JSON.parse(localStorage.getItem('debi_chat_history') || '[]');
@@ -320,9 +405,9 @@
     function loadChatHistory() {
         const history = JSON.parse(localStorage.getItem('debi_chat_history') || '[]');
         if (history.length === 0) return;
-        
+
         $('#emptyState').remove();
-        
+
         history.forEach(msg => {
             const isUser = msg.role === 'user';
             const html = isUser ? `
@@ -352,7 +437,7 @@
             `;
             $("#messageList").append(html);
         });
-        
+
         const msgBody = $("#messageFormeight");
         msgBody.scrollTop(msgBody[0].scrollHeight);
     }
@@ -369,8 +454,8 @@
                     <h2>Welcome, I'm <span style="color: #EC7D23;">Debra</span></h2>
                     <div class="welcome-divider"></div>
                     <p class="welcome-description">
-                        Your guide to understanding football. Football is more than goals and highlights. 
-                        I help you discover the ideas behind the game, from tactics and player movements 
+                        Your guide to understanding football. Football is more than goals and highlights.
+                        I help you discover the ideas behind the game, from tactics and player movements
                         to the numbers that tell the hidden story.
                     </p>
                     <p class="welcome-cta">
