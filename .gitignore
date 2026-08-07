@@ -1,6 +1,9 @@
 # Environment variables
 .env
 
+# Requirements files
+requirements-old.txt
+
 # Virtual environments
 .venv/
 venv/
@@ -21,6 +24,12 @@ data/
 # IDE files
 .vscode/
 .idea/
+
+
+# API keys
+keys.py
+secrets.py
+config.py
 
 # Streamlit
 .streamlit/
