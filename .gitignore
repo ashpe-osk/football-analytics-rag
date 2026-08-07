@@ -1,35 +1,56 @@
-# Environment variables
-.env
-
-# Requirements files
-requirements-old.txt
-
-# Virtual environments
-.venv/
-venv/
-footy-guide/
-
-# Python cache
+# ============================================
+# PYTHON CACHE
+# ============================================
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Data files
-data/
+# ============================================
+# VIRTUAL ENVIRONMENTS
+# ============================================
+.venv/
+venv/
+footy-guide/
+env/
+ENV/
 
-# OS files
-.DS_Store
-
-# IDE files
-.vscode/
-.idea/
-
-
-# API keys
+# ============================================
+# API KEYS & SECRETS
+# ============================================
+.env
 keys.py
 secrets.py
 config.py
 
-# Streamlit
+# ============================================
+# PROJECT SPECIFIC
+# ============================================
+research/
+data/
+*.pdf
+*.csv
+*.xlsx
+
+# ============================================
+# PYTHON PACKAGE METADATA (auto-generated)
+# ============================================
+*.egg-info/
+*.egg
+dist/
+build/
+
+# ============================================
+# IDE & OS
+# ============================================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ============================================
+# OTHER (optional)
+# ============================================
 .streamlit/
+requirements-old.txt
+*.log
