@@ -130,5 +130,3 @@ Football Data Analyst
 
 - GitHub: [@ashpe-osk](https://github.com/ashpe-osk)
 - LinkedIn: [ashpe-ayubu](https://www.linkedin.com/in/ashpe-ayubu)
-- Live Demo: https://askdebra.vercel.app
-- Alternative Deployment: https://askdebra.onrender.com
