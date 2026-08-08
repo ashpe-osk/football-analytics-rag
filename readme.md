@@ -90,7 +90,7 @@ graph TD
 | Reranker         | Sentence Transformers - `cross-encoder/ms-marco-MiniLM-L-2-v2`   |
 | Frontend         | HTML5, CSS3, Bootstrap 4, JavaScript, jQuery, Marked.js          |
 | Session Storage  | In-memory `ChatMessageHistory`                                   |
-| Deployment       | Render with Gunicorn                                             |
+| Deployment       | Vercel & Render                                            |
 
 ---
 
@@ -105,21 +105,21 @@ Debra is deployed on Vercel, with an alternative deployment on Render.
 
 ## Limitations and Design Considerations
 
-- **Knowledge Base:** Responses are limited to the indexed PDF corpus and do not include live football or real-time match data.
-- **Memory:** Conversation history is stored in memory and is lost when the server restarts.
-- **Reranking:** The cross-encoder requires additional memory and can be disabled when necessary.
-- **Model Dependency:** Response quality depends on the underlying LLM and embedding models.
+- **Knowledge Base:**- Responses are limited to the indexed PDF corpus and do not include live football or real-time match data.
+- **Memory:**- Conversation history is stored in memory and is lost when the server restarts.
+- **Reranking:** - The cross-encoder requires additional memory and can be disabled when necessary.
+- **Model Dependency:** - Response quality depends on the underlying LLM and embedding models.
 
 ---
 
 ## Future Improvements
 
-- **Hybrid Search:** Combine vector search with keyword-based retrieval such as BM25.
-- **Long-Term Memory:** Support conversation context across sessions.
-- **User Feedback:** Collect feedback on generated responses.
-- **Analytics Dashboard:** Monitor usage and retrieval patterns.
-- **Multi-Modal Analysis:** Support visualisations such as shot maps, passing networks, and tactical diagrams.
-- **Expanded Knowledge Base:** Add additional football data providers, leagues, and competitions.
+- **Hybrid Search:** - Combine vector search with keyword-based retrieval such as BM25.
+- **Long-Term Memory:** - Support conversation context across sessions.
+- **User Feedback:** - Collect feedback on generated responses.
+- **Analytics Dashboard:** - Monitor usage and retrieval patterns.
+- **Multi-Modal Analysis:** - Support visualisations such as shot maps, passing networks, and tactical diagrams.
+- **Expanded Knowledge Base:** - Add additional football data providers, leagues, and competitions.
 
 ---
 
