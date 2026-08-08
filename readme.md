@@ -1,4 +1,4 @@
-# Debra - Football Analytics RAG
+# Debra - Football Analytics Chatbot
 
 ![Debra - Football Analytics Mentor](images/debra.png)
 
