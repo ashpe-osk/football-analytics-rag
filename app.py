@@ -33,19 +33,19 @@ docsearch = PineconeVectorStore.from_existing_index(
     embedding=embeddings
 )
 
-# ----- Base retriever -----
+#Base retriever 
 base_retriever = docsearch.as_retriever(
     search_type="similarity",
     search_kwargs={"k": 20}
 )
 
-# ----- Use smaller model to save tokens -----
+# Use smaller model to save tokens 
 chatModel = ChatGroq(
     model="llama-3.1-8b-instant",
     temperature=0.2
 )
 
-# ----- History-aware retriever -----
+# History-aware retriever 
 contextualize_prompt = ChatPromptTemplate.from_messages([
     ("system", "Given a chat history and the latest user question, formulate a standalone question."),
     MessagesPlaceholder("chat_history"),
@@ -58,7 +58,7 @@ history_aware_retriever = create_history_aware_retriever(
     contextualize_prompt
 )
 
-# ----- Main QA prompt -----
+# Main QA prompt 
 qa_prompt = ChatPromptTemplate.from_messages([
     ("system", system_prompt),
     MessagesPlaceholder("chat_history"),
@@ -70,7 +70,7 @@ question_answer_chain = create_stuff_documents_chain(
     qa_prompt
 )
 
-# ----- Session history store -----
+#  Session history store 
 session_histories = {}
 
 def get_session_history(session_id: str):
@@ -78,10 +78,8 @@ def get_session_history(session_id: str):
         session_histories[session_id] = ChatMessageHistory()
     return session_histories[session_id]
 
-# --------------------------------------------------
-# DETECT "I DON'T KNOW" IN ANSWER
-# --------------------------------------------------
 
+# DETECT "I DON'T KNOW" IN ANSWER
 def is_ignorance_response(answer: str) -> bool:
     """
     Returns True if the answer indicates the bot doesn't know the answer.
@@ -105,10 +103,8 @@ def is_ignorance_response(answer: str) -> bool:
             return True
     return False
 
-# --------------------------------------------------
-# RETRY HELPER
-# --------------------------------------------------
 
+# RETRY HELPER
 def invoke_with_retry(chain, inputs, max_retries=2, delay=2):
     for attempt in range(max_retries):
         try:
@@ -122,10 +118,8 @@ def invoke_with_retry(chain, inputs, max_retries=2, delay=2):
             raise
     raise RuntimeError("Max retries exceeded")
 
-# --------------------------------------------------
-# FLASK ROUTES
-# --------------------------------------------------
 
+# FLASK ROUTES
 @app.route("/")
 def index():
     return render_template("chat.html")
@@ -149,7 +143,7 @@ def chat():
         history = get_session_history(session_id)
         chat_history = history.messages
 
-        # --- Greeting check ---
+        #Greeting check
         if is_greeting_or_smalltalk(msg):
             print("→ Detected greeting/small talk – skipping retrieval.")
             response = chatModel.invoke(
@@ -166,7 +160,7 @@ def chat():
             print("DEBRA RESPONSE:", answer)
             return jsonify({"answer": answer, "sources": None})
 
-        # --- RAG pipeline ---
+        #RAG pipeline 
         print("→ Running retrieval & generation...")
         retrieved_docs = invoke_with_retry(
             history_aware_retriever,
@@ -193,9 +187,7 @@ def chat():
 
         print("DEBRA RESPONSE:", answer)
 
-        # =============================================
         # SUPPRESS SOURCES IF THE BOT DOESN'T KNOW
-        # =============================================
         if is_ignorance_response(answer):
             print("→ Detected 'I don't know' – suppressing sources.")
             sources_str = None

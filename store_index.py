@@ -13,9 +13,8 @@ from pinecone import Pinecone, ServerlessSpec
 from langchain_pinecone import PineconeVectorStore
 
 
-# --------------------------------------------------
+
 # Environment
-# --------------------------------------------------
 
 load_dotenv()
 
@@ -29,11 +28,9 @@ if not PINECONE_API_KEY:
     )
 
 
-# --------------------------------------------------
 # Load documents
-# --------------------------------------------------
 
-print("📄 Loading PDFs...")
+print("Loading PDFs...")
 
 
 extracted_data = load_pdf_file(
@@ -42,14 +39,13 @@ extracted_data = load_pdf_file(
 
 
 print(
-    f"✅ Documents loaded: {len(extracted_data)}"
+    f"Documents loaded: {len(extracted_data)}"
 )
 
 
 
-# --------------------------------------------------
+
 # Metadata cleanup
-# --------------------------------------------------
 
 filter_data = filter_to_minimal_docs(
     extracted_data
@@ -57,11 +53,10 @@ filter_data = filter_to_minimal_docs(
 
 
 
-# --------------------------------------------------
-# Chunk documents
-# --------------------------------------------------
 
-print("✂️ Creating chunks...")
+# Chunk documents
+
+print("Creating chunks...")
 
 
 text_chunks = text_split(
@@ -70,28 +65,25 @@ text_chunks = text_split(
 
 
 print(
-    f"✅ Chunks created: {len(text_chunks)}"
+    f"Chunks created: {len(text_chunks)}"
 )
 
 
 
-# --------------------------------------------------
-# Embeddings
-# --------------------------------------------------
 
-print("🧠 Loading embeddings...")
+# Embeddings
+
+print("Loading embeddings...")
 
 
 embeddings = download_embeddings()
 
 
-print("✅ Embeddings ready")
+print("Embeddings ready")
 
 
 
-# --------------------------------------------------
 # Pinecone
-# --------------------------------------------------
 
 pc = Pinecone(
     api_key=PINECONE_API_KEY
@@ -102,9 +94,8 @@ index_name = "football-knowledge-base-v2"
 
 
 
-# --------------------------------------------------
+
 # Create index only if missing
-# --------------------------------------------------
 
 if not pc.has_index(index_name):
 
@@ -129,22 +120,21 @@ if not pc.has_index(index_name):
         time.sleep(5)
 
 
-    print("✅ Index ready")
+    print("Index ready")
 
 
 else:
 
     print(
-        "✅ Existing Pinecone index found"
+        "Existing Pinecone index found"
     )
 
 
 
-# --------------------------------------------------
-# Upload vectors in batches
-# --------------------------------------------------
 
-print("⬆️ Uploading vectors...")
+# Upload vectors in batches
+
+print("Uploading vectors...")
 
 
 batch_size = 100
@@ -175,5 +165,5 @@ for i in range(
 
 
 print(
-    "🎉 Football knowledge base upload completed!"
+    "Football knowledge base upload completed!"
 )
