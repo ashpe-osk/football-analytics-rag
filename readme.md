@@ -1,8 +1,8 @@
 # Debra - Football Analytics RAG
 
-![Debra - Football Analytics Chatbot](images/debra.png)
+![Debra - Football Analytics Mentor](images/debra.png)
 
-An AI-powered Football Analytics Mentor and Learning Assistant that uses retrieval-augmented generation to explain football analytics concepts, terminology, tactical ideas, and event data.
+A RAG-powered football analytics chatbot that lowers the barrier to entry into football analytics by teaching football concepts, terminology, match events, and data interpretation.
 
 **Live Demo:** https://askdebra.vercel.app
 **Alternative Deployment:** https://askdebra.onrender.com
