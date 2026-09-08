@@ -41,7 +41,7 @@ base_retriever = docsearch.as_retriever(
 
 # Use smaller model to save tokens 
 chatModel = ChatGroq(
-    model="qwen/qwen3.6-27b",
+    model="openai/gpt-oss-20b",
     temperature=0.2
 )
 
