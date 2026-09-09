@@ -39,10 +39,11 @@ base_retriever = docsearch.as_retriever(
     search_kwargs={"k": 20}
 )
 
-# Use smaller model to save tokens 
 chatModel = ChatGroq(
     model="openai/gpt-oss-20b",
-    temperature=0.2
+    temperature=0.2,
+    reasoning_effort="low",
+    max_tokens=500
 )
 
 # History-aware retriever 
