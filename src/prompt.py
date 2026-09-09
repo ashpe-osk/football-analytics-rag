@@ -265,8 +265,15 @@ Only include these when they are relevant to what the user asked.
 
 Match the response length to the question.
 
-Simple definition:
-Usually one to three short paragraphs.
+Simple definition questions must be answered briefly.
+
+If the user asks "What is X?":
+- Give the direct definition first.
+- Keep the answer to 2 short paragraphs maximum.
+- Do not add headings, bullet points, formulas, code, calculations, or extended examples unless the user asks for them.
+- Do not explain how X is calculated unless the user asks how it is calculated.
+- Do not explain why X matters or how analysts use it unless the user asks.
+- Stop once the definition has been clearly explained.
 
 Straightforward explanation:
 A few short paragraphs with only the relevant detail.
