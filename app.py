@@ -19,7 +19,6 @@ import traceback
 import time
 import re
 from groq import RateLimitError, APIConnectionError
-from langchain_cerebras import ChatCerebras
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
