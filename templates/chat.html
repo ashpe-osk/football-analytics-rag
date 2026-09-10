@@ -95,6 +95,43 @@
         body.light-theme .dev-credit {
             color: #9CA3AF;
         }
+
+        .header-actions {
+            gap: 10px;
+        }
+        .theme-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            padding: 7px 12px;
+            cursor: pointer;
+            color: #e5e7eb;
+            font: inherit;
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+        .theme-action-btn:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .theme-action-btn:focus-visible {
+            outline: 2px solid #8ab4f8;
+            outline-offset: 3px;
+        }
+        .theme-action-btn i {
+            font-size: 0.8rem;
+        }
+        body.light-theme .theme-action-btn {
+            color: #374151;
+            background: rgba(15, 23, 42, 0.03);
+            border-color: rgba(15, 23, 42, 0.12);
+        }
     </style>
 </head>
 <body>
@@ -133,8 +170,9 @@
                             </div>
                         </div>
                         <div class="d-flex align-items-center header-actions">
-                            <button class="theme-toggle-btn" id="themeToggle" title="Toggle theme">
+                            <button class="theme-action-btn" id="themeToggle" type="button" aria-label="Switch to dark mode">
                                 <i class="fas fa-moon"></i>
+                                <span>Switch to dark</span>
                             </button>
                             <span class="history-indicator" id="historyIndicator">
                                 <i class="fas fa-database"></i>
@@ -217,18 +255,36 @@
     $(document).ready(function() {
         // ─── Theme Toggle ───
         let isDarkTheme = true;
+
+        function updateThemeToggleUI() {
+            const $toggle = $('#themeToggle');
+            const $icon = $toggle.find('i');
+            const $label = $toggle.find('span');
+
+            if (isDarkTheme) {
+                $icon.removeClass('fa-moon').addClass('fa-sun');
+                $label.text('Switch to light');
+                $toggle.attr('aria-label', 'Switch to light mode');
+            } else {
+                $icon.removeClass('fa-sun').addClass('fa-moon');
+                $label.text('Switch to dark');
+                $toggle.attr('aria-label', 'Switch to dark mode');
+            }
+        }
+
         $('#themeToggle').on('click', function() {
             isDarkTheme = !isDarkTheme;
             if (isDarkTheme) {
                 $('body').removeClass('light-theme');
                 $('#mainCard').removeClass('light-theme');
-                $(this).html('<i class="fas fa-moon"></i>');
             } else {
                 $('body').addClass('light-theme');
                 $('#mainCard').addClass('light-theme');
-                $(this).html('<i class="fas fa-sun"></i>');
             }
+            updateThemeToggleUI();
         });
+
+        updateThemeToggleUI();
 
         // ─── Load chat history ───
         loadChatHistory();
