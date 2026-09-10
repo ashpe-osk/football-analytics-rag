@@ -19,6 +19,7 @@ import traceback
 import time
 import re
 from groq import RateLimitError, APIConnectionError
+from langchain_cerebras import ChatCerebras
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
@@ -40,7 +41,7 @@ base_retriever = docsearch.as_retriever(
 )
 
 chatModel = ChatGroq(
-    model="openai/gpt-oss-120b",
+    model="openai/gpt-oss-20b",
     temperature=0.2,
     reasoning_effort="low",
     max_tokens=500

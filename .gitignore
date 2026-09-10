@@ -27,6 +27,7 @@ data/
 *.xlsx
 demo_recordings/
 record_demo.py
+demo.mp4
 
 
 # PYTHON PACKAGE METADATA (auto-generated)
