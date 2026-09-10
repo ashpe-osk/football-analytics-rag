@@ -40,7 +40,7 @@ base_retriever = docsearch.as_retriever(
 )
 
 chatModel = ChatGroq(
-    model="openai/gpt-oss-20b",
+    model="openai/gpt-oss-120b",
     temperature=0.2,
     reasoning_effort="low",
     max_tokens=500

@@ -25,6 +25,8 @@ data/
 *.pdf
 *.csv
 *.xlsx
+demo_recordings/
+record_demo.py
 
 
 # PYTHON PACKAGE METADATA (auto-generated)
