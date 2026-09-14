@@ -63,36 +63,53 @@ base_retriever = docsearch.as_retriever(
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 LOCAL_MODEL = os.getenv("LOCAL_MODEL", "default")
 
+LOCAL_ENDPOINT_URL = os.getenv("ENDPOINT_BASE_URL")
+LOCAL_ENDPOINT_KEY = os.getenv("ENDPOINT_API_KEY")
+
 groq_model = ChatGroq(
     model=GROQ_MODEL,
     temperature=0.2,
     max_tokens=500,
 )
 
-local_model = ChatOpenAI(
-    model=LOCAL_MODEL,
-    base_url=os.environ["ENDPOINT_BASE_URL"],
-    api_key=os.environ["ENDPOINT_API_KEY"],
-    temperature=0.2,
-    max_tokens=500,
-    timeout=120,
-    max_retries=1,
-)
+# The local OpenAI-compatible endpoint is optional. When either env var
+# is missing the app runs Groq-only. This is the expected configuration
+# on serverless hosts such as Vercel, where the Kaggle endpoint is not
+# reachable anyway.
+local_model = None
+if LOCAL_ENDPOINT_URL and LOCAL_ENDPOINT_KEY:
+    local_model = ChatOpenAI(
+        model=LOCAL_MODEL,
+        base_url=LOCAL_ENDPOINT_URL,
+        api_key=LOCAL_ENDPOINT_KEY,
+        temperature=0.2,
+        max_tokens=500,
+        timeout=120,
+        max_retries=1,
+    )
+    logging.info("Local fallback model configured.")
+else:
+    logging.info(
+        "ENDPOINT_BASE_URL / ENDPOINT_API_KEY not set. "
+        "Running without local model fallback."
+    )
 
-chat_model = groq_model.with_fallbacks(
-    [local_model],
-    exceptions_to_handle=(RateLimitError, APIConnectionError, NotFoundError),
-)
+if local_model is not None:
+    chat_model = groq_model.with_fallbacks(
+        [local_model],
+        exceptions_to_handle=(
+            RateLimitError,
+            APIConnectionError,
+            NotFoundError,
+        ),
+    )
+else:
+    chat_model = groq_model
 
 
 # -------------------------------------------------------------------
 # Source label shortening
 # -------------------------------------------------------------------
-# The raw "source" field in Pinecone metadata is the original filename,
-# which is long and noisy (e.g. includes "(z-library.sk, 1lib.sk,
-# z-lib.sk).pdf"). The model copies the tag verbatim when it cites, so
-# we shorten what goes into the tag while keeping the full filename in
-# metadata["source"] for the "Show sources" panel.
 
 SOURCE_SHORT_NAMES = {
     "Soccer Analytics with Machine Learning - Learning Predictive Modeling Techniques with Sports Data (Haipeng Gao, Ari Joury, Weining Shen etc.) (z-library.sk, 1lib.sk, z-lib.sk).pdf": "Soccer Analytics with Machine Learning",
@@ -117,13 +134,6 @@ _TRAILING_PARENS_RE = re.compile(
 
 
 def shorten_source(name: str) -> str:
-    """
-    Return a short, citable label for a source filename.
-
-    Prefers an explicit entry in SOURCE_SHORT_NAMES. Otherwise strips
-    the file extension, trailing "(...lib...)" or "(N)" suffixes, and
-    any " - Subtitle" tail, then caps the result at 70 characters.
-    """
     if not name:
         return "unknown source"
 
@@ -152,9 +162,6 @@ def shorten_source(name: str) -> str:
 # -------------------------------------------------------------------
 # Answer chain
 # -------------------------------------------------------------------
-# create_stuff_documents_chain reads each Document's metadata to build
-# the context string. The document_prompt below injects a short source
-# label into each chunk so the model has a clean, citable tag.
 
 document_prompt = PromptTemplate.from_template(
     "[Source: {source_short}]\n{page_content}"
@@ -215,7 +222,10 @@ def describe_model(response) -> str:
 
 def model_details(response) -> dict:
     name = describe_model(response)
-    is_local = name == LOCAL_MODEL or name.lower() == "default"
+    is_local = (
+        local_model is not None
+        and (name == LOCAL_MODEL or name.lower() == "default")
+    )
     return {
         "model": name,
         "model_role": "fallback" if is_local else "primary",
@@ -223,24 +233,12 @@ def model_details(response) -> dict:
 
 
 def clean_answer_citations(answer: str) -> str:
-    # Strip Gemini-style line markers: 【...†L123-L456】
     answer = re.sub(r"【[^】]*†L\d+(?:-L\d+)?】", "", answer)
-    # Strip any remaining CJK-bracket citation tokens. Length-bounded so
-    # a legitimate answer containing those characters is not truncated.
     answer = re.sub(r"【[^】]{0,200}】", "", answer)
     return answer.strip()
 
 
 def enrich_documents(documents):
-    """
-    Ensure every document has the metadata keys the document_prompt and
-    the frontend depend on.
-
-    - metadata["source"] is preserved unchanged (used by the frontend
-      "Show sources" panel).
-    - metadata["source_short"] is added for the [Source: ...] tag the
-      model sees and copies into its citations.
-    """
     for doc in documents:
         metadata = dict(doc.metadata or {})
         source = (
@@ -353,6 +351,11 @@ def invoke_chat_model(messages):
     try:
         return chat_model.invoke(messages)
     except (RateLimitError, APIConnectionError, NotFoundError):
+        if local_model is None:
+            logging.warning(
+                "Groq unavailable and no local fallback is configured."
+            )
+            raise
         logging.warning(
             "Groq unavailable or model is not accessible; "
             "invoking the configured local model."
@@ -361,11 +364,6 @@ def invoke_chat_model(messages):
 
 
 def log_context_sent(documents):
-    """
-    Debug helper. Prints the exact context the model receives, including
-    the [Source: ...] tag on each chunk. Remove or lower the level once
-    citation output has been verified.
-    """
     if not documents:
         logging.info("CONTEXT SENT TO MODEL: (no documents)")
         return
