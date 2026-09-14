@@ -540,6 +540,8 @@ body.light-theme .typing-indicator {
     padding: 12px var(--side-pad);
     flex-shrink: 0;
     backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 2;
 }
 body.light-theme .card-footer {
     background: #FFFFFF !important;
@@ -547,6 +549,7 @@ body.light-theme .card-footer {
 }
 
 .type_msg {
+    pointer-events: auto;
     background: #0B0F12 !important;
     border: 1px solid rgba(255, 255, 255, 0.06) !important;
     color: #F3F4F6 !important;
@@ -954,4 +957,53 @@ body.light-theme .btn-cancel:hover {
         height: 24px;
         font-size: 0.6rem;
     }
+}
+/* ----- Model provider badge — quiet status line under each answer ----- */
+.model-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 10px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+}
+
+.model-badge::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Groq — primary. Uses the app's brand orange. */
+.model-badge.groq {
+    color: #EC7D23;
+}
+.model-badge.groq::before {
+    background: #EC7D23;
+    box-shadow: 0 0 6px rgba(236, 125, 35, 0.5);
+}
+
+/* Kaggle — fallback. Cool slate, matches the sources link tone. */
+.model-badge.kaggle {
+    color: #8ab4f8;
+}
+.model-badge.kaggle::before {
+    background: #8ab4f8;
+    box-shadow: 0 0 6px rgba(138, 180, 248, 0.4);
+}
+
+/* Light theme variants */
+body.light-theme .model-badge.groq {
+    color: #C76716;
+}
+body.light-theme .model-badge.kaggle {
+    color: #1a73e8;
 }

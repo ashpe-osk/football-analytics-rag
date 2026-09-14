@@ -66,7 +66,7 @@
         .sources-toggle .sources-content.show {
             display: block;
         }
-        /* Ensure links inside messages are visible */
+        /* Links inside messages */
         .msg_cotainer a, .msg_cotainer_send a {
             color: #8ab4f8;
             text-decoration: underline;
@@ -75,7 +75,7 @@
             color: #1a73e8;
         }
 
-        /* Developer credit footer */
+        /* Dev credit footer */
         .dev-credit {
             text-align: center;
             font-size: 0.7rem;
@@ -155,7 +155,7 @@
 
             <div class="card" id="mainCard">
 
-                <!-- ─── HEADER ─── -->
+                <!-- HEADER -->
                 <div class="card-header msg_head">
                     <div class="d-flex bd-highlight align-items-center justify-content-between header-row">
                         <div class="d-flex align-items-center header-identity">
@@ -185,7 +185,7 @@
                     </div>
                 </div>
 
-                <!-- ─── MESSAGE BODY ─── -->
+                <!-- MESSAGE BODY -->
                 <div id="messageFormeight" class="card-body msg_card_body">
                     <div id="emptyState" class="empty-state">
                         <div class="welcome-content">
@@ -207,7 +207,7 @@
                     <div id="messageList"></div>
                 </div>
 
-                <!-- ─── SUGGESTIONS ─── -->
+                <!-- SUGGESTIONS -->
                 <div class="suggestions-wrapper" id="suggestionChips">
                     <span class="suggestion-chip" data-question="Explain xG">Explain xG</span>
                     <span class="suggestion-chip" data-question="What is PPDA?">What is PPDA?</span>
@@ -216,7 +216,7 @@
                     <span class="suggestion-chip" data-question="Explain progressive passes">Explain progressive passes</span>
                 </div>
 
-                <!-- ─── INPUT FOOTER ─── -->
+                <!-- INPUT FOOTER -->
                 <div class="card-footer">
                     <form id="messageArea" class="input-group">
                         <input type="text" id="text" name="msg"
@@ -239,7 +239,7 @@
 </div>
 
 <script>
-    // ─── Real viewport height fix ───
+    // Real viewport height (fixes mobile browser chrome)
     function setAppHeight() {
         const vv = window.visualViewport;
         const h = vv ? vv.height : window.innerHeight;
@@ -253,7 +253,7 @@
     }
 
     $(document).ready(function() {
-        // ─── Theme Toggle ───
+        // Theme toggle
         let isDarkTheme = true;
 
         function updateThemeToggleUI() {
@@ -286,11 +286,11 @@
 
         updateThemeToggleUI();
 
-        // ─── Load chat history ───
+        // Load history + count
         loadChatHistory();
         updateMessageCount();
 
-        // ─── suggestion chips ───
+        // Suggestion chips
         $('.suggestion-chip').on('click', function() {
             const question = $(this).data('question');
             if (question) {
@@ -299,7 +299,7 @@
             }
         });
 
-        // ─── message submit ───
+        // Message submit
         $("#messageArea").on("submit", function(event) {
             event.preventDefault();
 
@@ -351,7 +351,7 @@
             $("#messageList").append(typingHtml);
             msgBody.scrollTop(msgBody[0].scrollHeight);
 
-            // ─── AJAX Request ───
+            // Fire request
             $.ajax({
                 data: { msg: rawText },
                 type: "POST",
@@ -380,7 +380,7 @@
                     return;
                 }
 
-                // Render answer (Markdown)
+                // Render Markdown
                 let renderedHtml = data.answer;
                 if (typeof marked !== 'undefined') {
                     try {
@@ -392,7 +392,7 @@
                     renderedHtml = data.answer.replace(/\n/g, "<br>");
                 }
 
-                // Build sources toggle only if actual sources exist
+                // Sources toggle (only if there are real sources)
                 let sourcesHtml = '';
                 if (data.sources && data.sources !== "No source metadata available." && data.sources.trim() !== "") {
                     sourcesHtml = `
@@ -407,6 +407,14 @@
                     `;
                 }
 
+                // Render the model identity supplied by the backend.
+                let modelHtml = '';
+                if (data.model) {
+                    const modelName = String(data.model);
+                    const role = data.model_role || 'primary';
+                    modelHtml = `<div class="model-badge ${role === 'fallback' ? 'kaggle' : 'groq'}">${modelName} · ${role}</div>`;
+                }
+
                 // Bot message
                 const botHtml = `
                     <div class="d-flex justify-content-start mb-3 message-row bot-message">
@@ -418,13 +426,15 @@
                         <div class="msg_cotainer">
                             ${renderedHtml}
                             ${sourcesHtml}
+                            ${modelHtml}
                             <span class="msg_time">${str_time}</span>
                         </div>
                     </div>
                 `;
                 $("#messageList").append(botHtml);
 
-                saveMessage('assistant', data.answer, str_time);
+                // Save the full reply, including model + sources, so refresh keeps it
+                saveMessage('assistant', data.answer, str_time, data.model, data.model_role, data.sources);
 
                 msgBody.scrollTop(msgBody[0].scrollHeight);
                 updateMessageCount();
@@ -453,7 +463,7 @@
             });
         });
 
-        // ─── Enter key to submit ───
+        // Enter key to send
         $('#text').on('keypress', function(e) {
             if (e.which === 13 && !e.shiftKey) {
                 e.preventDefault();
@@ -462,7 +472,7 @@
         });
     });
 
-    // ─── Toggle sources function ───
+    // Toggle sources
     function toggleSources(btn) {
         const container = $(btn).closest('.sources-toggle');
         const content = container.find('.sources-content');
@@ -476,14 +486,17 @@
         }
     }
 
-    // ─── Chat History Functions ───
-    function saveMessage(role, content, timestamp) {
+    // Chat history (localStorage) — stores sources + model too
+    function saveMessage(role, content, timestamp, model, modelRole, sources) {
         let history = JSON.parse(localStorage.getItem('debi_chat_history') || '[]');
         history.push({
             role: role,
             content: content,
             timestamp: timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            date: new Date().toISOString()
+            date: new Date().toISOString(),
+            model: model || null,
+            model_role: modelRole || null,
+            sources: sources || null
         });
         if (history.length > 200) {
             history = history.slice(-200);
@@ -500,31 +513,66 @@
 
         history.forEach(msg => {
             const isUser = msg.role === 'user';
-            const html = isUser ? `
-                <div class="d-flex justify-content-end mb-3 message-row user-message">
-                    <div class="msg_cotainer_send">
-                        ${msg.content}
-                        <span class="msg_time_send">${msg.timestamp}</span>
-                    </div>
-                    <div class="img_cont_msg ml-2">
-                        <div class="user-avatar-circle">
-                            <i class="fas fa-user"></i>
+            let html;
+
+            if (isUser) {
+                html = `
+                    <div class="d-flex justify-content-end mb-3 message-row user-message">
+                        <div class="msg_cotainer_send">
+                            ${msg.content}
+                            <span class="msg_time_send">${msg.timestamp}</span>
+                        </div>
+                        <div class="img_cont_msg ml-2">
+                            <div class="user-avatar-circle">
+                                <i class="fas fa-user"></i>
+                            </div>
                         </div>
                     </div>
-                </div>
-            ` : `
-                <div class="d-flex justify-content-start mb-3 message-row bot-message">
-                    <div class="img_cont_msg mr-2">
-                        <div class="bot-avatar-circle">
-                            <i class="fas fa-robot"></i>
+                `;
+            } else {
+                // Rebuild sources toggle
+                let sourcesHtml = '';
+                if (msg.sources && msg.sources !== "No source metadata available." && msg.sources.trim() !== "") {
+                    sourcesHtml = `
+                        <div class="sources-toggle">
+                            <button class="sources-toggle-btn" onclick="toggleSources(this)">
+                                <i class="fas fa-book-open"></i> Show sources
+                            </button>
+                            <div class="sources-content" style="display:none;">
+                                ${msg.sources}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Rebuild the model badge from the saved server response.
+                let modelHtml = '';
+                if (msg.model) {
+                    const modelName = String(msg.model);
+                    const role = msg.model_role || 'primary';
+                    modelHtml = `<div class="model-badge ${role === 'fallback' ? 'kaggle' : 'groq'}">${modelName} · ${role}</div>`;
+                }
+
+                const renderedContent = typeof marked !== 'undefined'
+                    ? marked.parse(msg.content)
+                    : msg.content.replace(/\n/g, "<br>");
+
+                html = `
+                    <div class="d-flex justify-content-start mb-3 message-row bot-message">
+                        <div class="img_cont_msg mr-2">
+                            <div class="bot-avatar-circle">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                        </div>
+                        <div class="msg_cotainer">
+                            ${renderedContent}
+                            ${sourcesHtml}
+                            ${modelHtml}
+                            <span class="msg_time">${msg.timestamp}</span>
                         </div>
                     </div>
-                    <div class="msg_cotainer">
-                        ${typeof marked !== 'undefined' ? marked.parse(msg.content) : msg.content.replace(/\n/g, "<br>")}
-                        <span class="msg_time">${msg.timestamp}</span>
-                    </div>
-                </div>
-            `;
+                `;
+            }
             $("#messageList").append(html);
         });
 
