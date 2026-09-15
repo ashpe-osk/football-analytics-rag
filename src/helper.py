@@ -7,13 +7,10 @@ from langchain_core.documents import Document
 from langchain_pinecone import PineconeEmbeddings
 
 from typing import List
+import hashlib
 import os
 import re
-import numpy as np
 
-# --------------------------------------------------
-# Load PDF files with category metadata + page numbers
-# --------------------------------------------------
 
 def load_pdf_file(data):
     documents = []
@@ -29,7 +26,11 @@ def load_pdf_file(data):
             for doc in docs:
                 page = doc.metadata.get("page", 0)
                 source = os.path.basename(doc.metadata.get("source", ""))
-                provider = category if category.lower() in ["uefa", "fifa", "rsssf"] else "unknown"
+                provider = (
+                    category
+                    if category.lower() in ["uefa", "fifa", "rsssf"]
+                    else "unknown"
+                )
                 doc.metadata.update({
                     "category": category,
                     "source": source,
@@ -39,9 +40,6 @@ def load_pdf_file(data):
             documents.extend(docs)
     return documents
 
-# --------------------------------------------------
-# Filter document metadata (keep essential fields)
-# --------------------------------------------------
 
 def filter_to_minimal_docs(docs: List[Document]) -> List[Document]:
     minimal_docs = []
@@ -59,80 +57,96 @@ def filter_to_minimal_docs(docs: List[Document]) -> List[Document]:
         )
     return minimal_docs
 
-# --------------------------------------------------
-# Split documents into chunks – reduce size to save tokens
-# --------------------------------------------------
 
 def text_split(extracted_data):
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,          # reduced from 800
-        chunk_overlap=100,       # reduced overlap
+        chunk_size=500,
+        chunk_overlap=100,
         separators=["\n\n", "\n", ".", " ", ""],
         length_function=len,
     )
-    text_chunks = text_splitter.split_documents(extracted_data)
-    return text_chunks
+    return text_splitter.split_documents(extracted_data)
 
-# --------------------------------------------------
-# Embeddings
-# --------------------------------------------------
 
 def download_embeddings():
     return PineconeEmbeddings(model="multilingual-e5-large")
 
-# --------------------------------------------------
-# Detect greetings and small talk
-# --------------------------------------------------
+
+# Short, exact-match phrases for greetings and small talk. Anything
+# in this set short-circuits retrieval.
+_GREETINGS = {
+    "hi", "hello", "hey", "hey debra", "hi debra", "hello debra",
+    "good morning", "good afternoon", "good evening",
+    "howdy", "greetings", "yo", "sup",
+}
+
+_SMALLTALK = {
+    "thanks", "thank you", "thanks debra", "thank you debra",
+    "bye", "goodbye", "see you", "see you later", "see ya",
+    "ok", "okay", "k", "alright", "all right", "sure", "cool",
+    "nice", "got it", "i see", "understood", "makes sense",
+    "that makes sense", "fair enough", "no problem",
+    "yes", "yeah", "yep", "no", "nope",
+    "how are you", "how are you doing", "how's it going",
+    "what's up", "what is your name", "who are you",
+    "who made you", "who developed you", "who created you",
+}
+
+_SMALLTALK_ALL = _GREETINGS | _SMALLTALK
+
 
 def is_greeting_or_smalltalk(text: str) -> bool:
-    text_lower = text.lower().strip()
-    greetings = [
-        "hi", "hello", "hey", "good morning", "good afternoon",
-        "good evening", "howdy", "greetings", "yo", "sup"
-    ]
-    others = [
-        "thanks", "thank you", "bye", "goodbye", "see you",
-        "how are you", "what's up", "what is your name",
-        "who are you", "who made you", "who developed you"
-    ]
-    for g in greetings:
-        if text_lower == g or text_lower.startswith(g + " ") or text_lower.startswith(g + "!"):
+    """
+    Return True if the message is a greeting, acknowledgement, farewell,
+    or identity question that should bypass retrieval.
+
+    Matches exact phrases (after trimming trailing punctuation) and
+    short prefix variants such as "hello there" or "hey Debra!".
+    The prefix check is length-bounded so a long question that happens
+    to begin with a greeting word is not misclassified.
+    """
+    stripped = text.lower().strip().rstrip("!?.,;: ")
+
+    if not stripped:
+        return False
+
+    if stripped in _SMALLTALK_ALL:
+        return True
+
+    for phrase in _SMALLTALK_ALL:
+        if (
+            stripped.startswith(phrase + " ")
+            and len(stripped) <= len(phrase) + 20
+        ):
             return True
-    for o in others:
-        if text_lower == o or text_lower.startswith(o + " ") or text_lower.startswith(o + "!"):
-            return True
+
     return False
 
-# --------------------------------------------------
-# Deduplicate documents
-# --------------------------------------------------
+
+def _content_key(doc: Document) -> str:
+    content = (doc.page_content or "").strip()
+    normalized = re.sub(r"\s+", " ", content)
+    return hashlib.sha1(normalized.encode("utf-8")).hexdigest()
+
 
 def deduplicate_documents(documents: List[Document]) -> List[Document]:
     seen = set()
     unique = []
     for doc in documents:
-        source = doc.metadata.get("source", "unknown")
-        page = doc.metadata.get("page", 0)
-        key = (source, page)
-        if key not in seen:
-            seen.add(key)
-            unique.append(doc)
+        key = _content_key(doc)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(doc)
     return unique
 
-# --------------------------------------------------
-# Reranker – OPTIONAL (conditional import & environment flag)
-# --------------------------------------------------
 
-# Read environment variable: set USE_RERANK=false on Render to save memory
 USE_RERANK = os.getenv("USE_RERANK", "true").lower() == "true"
 
 _reranker = None
 
+
 def get_reranker(model_name: str = "cross-encoder/ms-marco-MiniLM-L-2-v2"):
-    """
-    Lazy-loads the cross-encoder only if USE_RERANK is True.
-    If sentence_transformers is not installed, returns None.
-    """
     global _reranker
     if not USE_RERANK:
         return None
@@ -141,37 +155,79 @@ def get_reranker(model_name: str = "cross-encoder/ms-marco-MiniLM-L-2-v2"):
             from sentence_transformers import CrossEncoder
             _reranker = CrossEncoder(model_name, device="cpu")
         except ImportError:
-            print("⚠️ sentence-transformers not installed. Reranking disabled.")
+            print(
+                "sentence-transformers not installed. "
+                "Reranking disabled."
+            )
             return None
     return _reranker
 
-def rerank_documents(query: str, documents: List[Document], top_k: int = 3) -> List[Document]:
+
+def _apply_quota(documents, top_k, max_per_source):
     """
-    Rerank documents using a cross-encoder. Falls back to simple top‑k if reranking is disabled or not available.
+    Take up to top_k documents while limiting how many come from the
+    same source. Prevents a single large book from monopolizing the
+    context window and lets answers cite a more varied set of sources.
     """
+    per_source = {}
+    selected = []
+
+    for doc in documents:
+        source = (doc.metadata or {}).get("source", "unknown")
+        count = per_source.get(source, 0)
+        if count >= max_per_source:
+            continue
+        per_source[source] = count + 1
+        selected.append(doc)
+        if len(selected) >= top_k:
+            break
+
+    if len(selected) < top_k:
+        for doc in documents:
+            if doc in selected:
+                continue
+            selected.append(doc)
+            if len(selected) >= top_k:
+                break
+
+    return selected
+
+
+def rerank_documents(query, documents, top_k=6, max_per_source=2):
     if not documents:
         return []
-    if not USE_RERANK:
-        # No rerank – just return the first top_k (deduplicated first)
-        unique_docs = deduplicate_documents(documents)
-        return unique_docs[:top_k]
-    reranker = get_reranker()
-    if reranker is None:
-        # If reranker couldn't be loaded, fall back
-        unique_docs = deduplicate_documents(documents)
-        return unique_docs[:top_k]
-    # Actual reranking
+
     unique_docs = deduplicate_documents(documents)
     if not unique_docs:
         return []
+
+    if not USE_RERANK:
+        return _apply_quota(unique_docs, top_k, max_per_source)
+
+    reranker = get_reranker()
+    if reranker is None:
+        return _apply_quota(unique_docs, top_k, max_per_source)
+
     pairs = [(query, doc.page_content) for doc in unique_docs]
     scores = reranker.predict(pairs)
-    scored = sorted(zip(unique_docs, scores), key=lambda x: x[1], reverse=True)
-    return [doc for doc, _ in scored[:top_k]]
+    scored = sorted(
+        zip(unique_docs, scores),
+        key=lambda x: x[1],
+        reverse=True,
+    )
 
-# --------------------------------------------------
-# Clean source filenames
-# --------------------------------------------------
+    top = _apply_quota([d for d, _ in scored], top_k, max_per_source)
+
+    for doc in top:
+        for ranked_doc, score in scored:
+            if ranked_doc is doc:
+                metadata = dict(doc.metadata or {})
+                metadata["rerank_score"] = float(score)
+                doc.metadata = metadata
+                break
+
+    return top
+
 
 def clean_source_name(filename: str) -> str:
     if not filename:
@@ -186,9 +242,6 @@ def clean_source_name(filename: str) -> str:
         cleaned = cleaned[:77] + "..."
     return cleaned
 
-# --------------------------------------------------
-# Format sources for prompt
-# --------------------------------------------------
 
 def format_sources(documents: List[Document]) -> str:
     if not documents:
@@ -203,5 +256,8 @@ def format_sources(documents: List[Document]) -> str:
         category = meta.get("category", "General")
         page = meta.get("page", "")
         page_str = f", Page {page}" if page else ""
-        lines.append(f"[{i}] {clean_name}{page_str} (Provider: {provider}, Category: {category})")
+        lines.append(
+            f"[{i}] {clean_name}{page_str} "
+            f"(Provider: {provider}, Category: {category})"
+        )
     return "\n".join(lines)

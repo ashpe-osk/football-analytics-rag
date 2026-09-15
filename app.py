@@ -38,9 +38,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 
 
-# -------------------------------------------------------------------
 # Knowledge base
-# -------------------------------------------------------------------
 
 embeddings = download_embeddings()
 index_name = "football-knowledge-base-v2"
@@ -56,9 +54,7 @@ base_retriever = docsearch.as_retriever(
 )
 
 
-# -------------------------------------------------------------------
 # Models
-# -------------------------------------------------------------------
 
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 LOCAL_MODEL = os.getenv("LOCAL_MODEL", "default")
@@ -66,16 +62,15 @@ LOCAL_MODEL = os.getenv("LOCAL_MODEL", "default")
 LOCAL_ENDPOINT_URL = os.getenv("ENDPOINT_BASE_URL")
 LOCAL_ENDPOINT_KEY = os.getenv("ENDPOINT_API_KEY")
 
+MAX_ANSWER_TOKENS = 1500
+
 groq_model = ChatGroq(
     model=GROQ_MODEL,
     temperature=0.2,
-    max_tokens=500,
+    max_tokens=MAX_ANSWER_TOKENS,
 )
 
-# The local OpenAI-compatible endpoint is optional. When either env var
-# is missing the app runs Groq-only. This is the expected configuration
-# on serverless hosts such as Vercel, where the Kaggle endpoint is not
-# reachable anyway.
+# Local fallback is optional; runs Groq-only when env vars are missing.
 local_model = None
 if LOCAL_ENDPOINT_URL and LOCAL_ENDPOINT_KEY:
     local_model = ChatOpenAI(
@@ -83,7 +78,7 @@ if LOCAL_ENDPOINT_URL and LOCAL_ENDPOINT_KEY:
         base_url=LOCAL_ENDPOINT_URL,
         api_key=LOCAL_ENDPOINT_KEY,
         temperature=0.2,
-        max_tokens=500,
+        max_tokens=MAX_ANSWER_TOKENS,
         timeout=120,
         max_retries=1,
     )
@@ -107,9 +102,7 @@ else:
     chat_model = groq_model
 
 
-# -------------------------------------------------------------------
 # Source label shortening
-# -------------------------------------------------------------------
 
 SOURCE_SHORT_NAMES = {
     "Soccer Analytics with Machine Learning - Learning Predictive Modeling Techniques with Sports Data (Haipeng Gao, Ari Joury, Weining Shen etc.) (z-library.sk, 1lib.sk, z-lib.sk).pdf": "Soccer Analytics with Machine Learning",
@@ -124,6 +117,7 @@ SOURCE_SHORT_NAMES = {
     "Expected Possession Value (EPV) Research Paper.pdf": "Expected Possession Value (EPV) Research Paper",
     "fifa-coaching-manual-3.pdf": "FIFA Coaching Manual",
     "Data analytics in the football industry  a survey investigating operational frameworks and practices in professional clubs and national federations fr.pdf": "Data Analytics in the Football Industry",
+    "the-fa-handbook-2024-25---feb-update.pdf": "The FA Handbook",
 }
 
 _PDF_EXT_RE = re.compile(r"\.pdf$", re.IGNORECASE)
@@ -159,9 +153,7 @@ def shorten_source(name: str) -> str:
     return short or "unknown source"
 
 
-# -------------------------------------------------------------------
 # Answer chain
-# -------------------------------------------------------------------
 
 document_prompt = PromptTemplate.from_template(
     "[Source: {source_short}]\n{page_content}"
@@ -172,7 +164,7 @@ qa_prompt = ChatPromptTemplate.from_messages([
     MessagesPlaceholder("chat_history"),
     (
         "human",
-        "Retrieved documents from the football knowledge base:\n\n"
+        "Reference material:\n\n"
         "{context}\n\n"
         "Question: {input}\n\n"
         "Instructions: Answer the question above. The retrieved documents "
@@ -193,9 +185,7 @@ question_answer_chain = create_stuff_documents_chain(
 )
 
 
-# -------------------------------------------------------------------
 # Sessions
-# -------------------------------------------------------------------
 
 session_histories = {}
 
@@ -206,9 +196,7 @@ def get_session_history(session_id: str):
     return session_histories[session_id]
 
 
-# -------------------------------------------------------------------
 # Helpers
-# -------------------------------------------------------------------
 
 def describe_model(response) -> str:
     metadata = getattr(response, "response_metadata", None) or {}
@@ -236,6 +224,25 @@ def clean_answer_citations(answer: str) -> str:
     answer = re.sub(r"【[^】]*†L\d+(?:-L\d+)?】", "", answer)
     answer = re.sub(r"【[^】]{0,200}】", "", answer)
     return answer.strip()
+
+
+_SOURCE_TAG_RE = re.compile(r"\[Source:\s*[^\]]+\]")
+
+
+def answer_used_sources(answer: str, sources):
+    """
+    Return the sources string only when the answer actually cites a
+    retrieved source. If the answer contains no [Source: ...] tag, the
+    model either answered from general knowledge or refused, and the
+    sources panel must not be displayed.
+    """
+    if not sources:
+        return None
+
+    if not _SOURCE_TAG_RE.search(answer):
+        return None
+
+    return sources
 
 
 def enrich_documents(documents):
@@ -271,7 +278,11 @@ def log_retrieved_documents(query, documents):
             or "unknown"
         )
 
-        score = metadata.get("relevance_score") or metadata.get("score")
+        score = (
+            metadata.get("rerank_score")
+            or metadata.get("relevance_score")
+            or metadata.get("score")
+        )
 
         logging.info(
             "DOCUMENT %d | source=%s | score=%s | snippet=%s",
@@ -308,7 +319,7 @@ def log_retrieved_documents(query, documents):
     }
 
 
-def retrieve_and_rerank(message, top_k=4):
+def retrieve_and_rerank(message, top_k=6):
     retrieved_documents = base_retriever.invoke(message)
     retrieval_debug = log_retrieved_documents(message, retrieved_documents)
 
@@ -371,7 +382,10 @@ def log_context_sent(documents):
     chunks = []
     for doc in documents:
         metadata = doc.metadata or {}
-        source = metadata.get("source_short") or metadata.get("source", "MISSING")
+        source = (
+            metadata.get("source_short")
+            or metadata.get("source", "MISSING")
+        )
         preview = (doc.page_content or "")[:300].replace("\n", " ")
         chunks.append(f"[Source: {source}]\n{preview}")
 
@@ -380,9 +394,7 @@ def log_context_sent(documents):
     )
 
 
-# -------------------------------------------------------------------
 # Routes
-# -------------------------------------------------------------------
 
 @app.route("/")
 def index():
@@ -410,9 +422,7 @@ def chat():
 
         logging.info("USER QUESTION: %s", message)
 
-        # ------------------------------------------------------------------
-        # Greetings and small talk — no retrieval
-        # ------------------------------------------------------------------
+        # Greetings and small talk — no retrieval.
         if is_greeting_or_smalltalk(message):
             response = invoke_chat_model(
                 qa_prompt.format_messages(
@@ -428,7 +438,9 @@ def chat():
             history.add_user_message(message)
             history.add_ai_message(answer)
 
-            logging.info("ANSWER (greeting, %s): %s", model_used, answer)
+            logging.info(
+                "ANSWER (greeting, %s): %s", model_used, answer
+            )
 
             return jsonify({
                 "answer": answer,
@@ -439,9 +451,7 @@ def chat():
                 },
             })
 
-        # ------------------------------------------------------------------
-        # Normal path — retrieve, rerank, answer
-        # ------------------------------------------------------------------
+        # Normal path — retrieve, rerank, answer.
         top_documents, retrieval_debug = retrieve_and_rerank(message)
         log_context_sent(top_documents)
 
@@ -468,10 +478,11 @@ def chat():
         logging.info("ANSWER (%s): %s", model_used, answer)
 
         sources = format_sources(top_documents) if top_documents else None
+        sources = answer_used_sources(answer, sources)
 
         return jsonify({
             "answer": answer,
-            "sources": sources or None,
+            "sources": sources,
             **model_details(response),
             "debug": retrieval_debug,
         })
