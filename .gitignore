@@ -36,6 +36,8 @@ demo.mp4
 dist/
 build/
 
+# JAVASCRIPT / NODE
+node_modules/
 
 # IDE & OS
 .vscode/
