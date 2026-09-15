@@ -14,8 +14,6 @@ from langchain_pinecone import PineconeVectorStore
 
 
 
-# Environment
-
 load_dotenv()
 
 
@@ -27,8 +25,6 @@ if not PINECONE_API_KEY:
         "Missing PINECONE_API_KEY"
     )
 
-
-# Load documents
 
 print("Loading PDFs...")
 
@@ -45,16 +41,12 @@ print(
 
 
 
-# Metadata cleanup
-
 filter_data = filter_to_minimal_docs(
     extracted_data
 )
 
 
 
-
-# Chunk documents
 
 print("Creating chunks...")
 
@@ -71,8 +63,6 @@ print(
 
 
 
-# Embeddings
-
 print("Loading embeddings...")
 
 
@@ -83,8 +73,6 @@ print("Embeddings ready")
 
 
 
-# Pinecone
-
 pc = Pinecone(
     api_key=PINECONE_API_KEY
 )
@@ -94,8 +82,6 @@ index_name = "football-knowledge-base-v2"
 
 
 
-
-# Create index only if missing
 
 if not pc.has_index(index_name):
 
@@ -131,8 +117,6 @@ else:
 
 
 
-
-# Upload vectors in batches
 
 print("Uploading vectors...")
 

@@ -10,13 +10,11 @@ html, body {
     margin: 0;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     transition: background-color 0.3s ease, color 0.3s ease;
-    overflow: hidden; /* prevent page scroll, chat scrolls internally */
+    overflow: hidden;
 }
 
 :root {
-    /* real viewport height set by JS */
     --app-height: 100%;
-    /* consistent horizontal padding for all sections */
     --side-pad: 24px;
 }
 
@@ -30,11 +28,10 @@ body.light-theme {
     color: #1A1A2E;
 }
 
-/* ─── Main Wrapper ─── */
 .container-fluid.h-100 {
-    height: 100vh;                 /* fallback */
+    height: 100vh;
     height: calc(var(--app-height) * 1);
-    padding: 12px;                 /* space around the chat card */
+    padding: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -43,8 +40,8 @@ body.light-theme {
 .chat-wrapper {
     width: 100%;
     max-width: 1000px;
-    height: 100%;                 /* fill the container */
-    max-height: 850px;            /* optional, but not hard limit */
+    height: 100%;
+    max-height: 850px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -69,7 +66,6 @@ body.light-theme .card {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* ----- Header ----- */
 .msg_head {
     background: rgba(21, 27, 32, 0.95);
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
@@ -240,13 +236,12 @@ body.light-theme .clear-chat-btn:hover {
     color: #EF4444;
 }
 
-/* ----- Message Body ----- */
 .msg_card_body {
     overflow-y: auto;
     background: rgba(11, 15, 18, 0.95);
     padding: 20px var(--side-pad) 12px;
     flex: 1 1 auto;
-    min-height: 0;           /* crucial: allows shrinking */
+    min-height: 0;
     scroll-behavior: smooth;
     backdrop-filter: blur(5px);
 }
@@ -267,7 +262,6 @@ body.light-theme .msg_card_body::-webkit-scrollbar-track {
     background: #F0F2F5;
 }
 
-/* ----- Messages - Differentiated ----- */
 .message-row {
     animation: slideIn 0.3s ease forwards;
     opacity: 0;
@@ -372,14 +366,13 @@ body.light-theme .bot-avatar-circle {
     flex-shrink: 0;
 }
 
-/* ----- Welcome / Empty State ----- */
 .empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100%;
-    min-height: 250px;        /* reduced from 350px */
+    min-height: 250px;
     text-align: center;
     padding: 20px 10px;
 }
@@ -455,7 +448,6 @@ body.light-theme .welcome-divider {
     background: rgba(0, 0, 0, 0.08);
 }
 
-/* ----- Suggestions ----- */
 .suggestions-wrapper {
     padding: 10px var(--side-pad) 8px;
     background: rgba(11, 15, 18, 0.95);
@@ -502,7 +494,6 @@ body.light-theme .suggestion-chip:hover {
     color: #1A1A2E;
 }
 
-/* ----- Typing Indicator ----- */
 .typing-indicator {
     padding: 10px 14px;
     color: #94A3B8;
@@ -533,7 +524,6 @@ body.light-theme .typing-indicator {
     30% { transform: scale(1.2); opacity: 1; }
 }
 
-/* ----- Input Footer ----- */
 .card-footer {
     background: rgba(21, 27, 32, 0.95) !important;
     border-top: 1px solid rgba(255, 255, 255, 0.04) !important;
@@ -605,7 +595,6 @@ body.light-theme .send_btn:hover {
     background: #D16B1A !important;
 }
 
-/* ----- Markdown Styling (within assistant messages) ----- */
 .msg_cotainer h1, .msg_cotainer h2, .msg_cotainer h3,
 .msg_cotainer h4, .msg_cotainer h5, .msg_cotainer h6 {
     font-weight: 600;
@@ -663,7 +652,6 @@ body.light-theme .msg_cotainer code {
     color: #4B5563;
 }
 
-/* ----- Confirmation Modal ----- */
 .confirm-modal {
     display: none;
     position: fixed;
@@ -752,9 +740,6 @@ body.light-theme .btn-cancel:hover {
     background: rgba(0, 0, 0, 0.08);
 }
 
-/* ----- Responsive Refinements ----- */
-
-/* Tablets & small laptops */
 @media (max-width: 768px) {
     :root {
         --side-pad: 16px;
@@ -797,7 +782,6 @@ body.light-theme .btn-cancel:hover {
     }
 }
 
-/* Phones */
 @media (max-width: 576px) {
     :root {
         --side-pad: 14px;
@@ -851,7 +835,6 @@ body.light-theme .btn-cancel:hover {
     }
 }
 
-/* Very narrow phones (e.g. < 400px) */
 @media (max-width: 400px) {
     :root {
         --side-pad: 10px;
@@ -861,7 +844,7 @@ body.light-theme .btn-cancel:hover {
         padding-bottom: 10px;
     }
     .user_info p {
-        display: none; /* hides subtitle to save space */
+        display: none;
     }
     .header-actions {
         gap: 4px;
@@ -884,7 +867,6 @@ body.light-theme .btn-cancel:hover {
     }
 }
 
-/* Short viewports (e.g. landscape phones) */
 @media (max-height: 650px) {
     :root {
         --side-pad: 16px;
@@ -958,7 +940,6 @@ body.light-theme .btn-cancel:hover {
         font-size: 0.6rem;
     }
 }
-/* ----- Model provider badge — quiet status line under each answer ----- */
 .model-badge {
     display: inline-flex;
     align-items: center;
@@ -982,7 +963,6 @@ body.light-theme .btn-cancel:hover {
     flex-shrink: 0;
 }
 
-/* Groq — primary. Uses the app's brand orange. */
 .model-badge.groq {
     color: #EC7D23;
 }
@@ -991,7 +971,6 @@ body.light-theme .btn-cancel:hover {
     box-shadow: 0 0 6px rgba(236, 125, 35, 0.5);
 }
 
-/* Kaggle — fallback. Cool slate, matches the sources link tone. */
 .model-badge.kaggle {
     color: #8ab4f8;
 }
@@ -1000,7 +979,6 @@ body.light-theme .btn-cancel:hover {
     box-shadow: 0 0 6px rgba(138, 180, 248, 0.4);
 }
 
-/* Light theme variants */
 body.light-theme .model-badge.groq {
     color: #C76716;
 }

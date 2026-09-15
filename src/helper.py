@@ -72,8 +72,7 @@ def download_embeddings():
     return PineconeEmbeddings(model="multilingual-e5-large")
 
 
-# Short, exact-match phrases for greetings and small talk. Anything
-# in this set short-circuits retrieval.
+# These phrases bypass retrieval.
 _GREETINGS = {
     "hi", "hello", "hey", "hey debra", "hi debra", "hello debra",
     "good morning", "good afternoon", "good evening",

@@ -38,8 +38,6 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key")
 
 
-# Knowledge base
-
 embeddings = download_embeddings()
 index_name = "football-knowledge-base-v2"
 
@@ -53,8 +51,6 @@ base_retriever = docsearch.as_retriever(
     search_kwargs={"k": 20},
 )
 
-
-# Models
 
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 LOCAL_MODEL = os.getenv("LOCAL_MODEL", "default")
@@ -70,7 +66,7 @@ groq_model = ChatGroq(
     max_tokens=MAX_ANSWER_TOKENS,
 )
 
-# Local fallback is optional; runs Groq-only when env vars are missing.
+# The local model is optional; Groq is used when fallback settings are absent.
 local_model = None
 if LOCAL_ENDPOINT_URL and LOCAL_ENDPOINT_KEY:
     local_model = ChatOpenAI(
@@ -101,8 +97,6 @@ if local_model is not None:
 else:
     chat_model = groq_model
 
-
-# Source label shortening
 
 SOURCE_SHORT_NAMES = {
     "Soccer Analytics with Machine Learning - Learning Predictive Modeling Techniques with Sports Data (Haipeng Gao, Ari Joury, Weining Shen etc.) (z-library.sk, 1lib.sk, z-lib.sk).pdf": "Soccer Analytics with Machine Learning",
@@ -153,8 +147,6 @@ def shorten_source(name: str) -> str:
     return short or "unknown source"
 
 
-# Answer chain
-
 document_prompt = PromptTemplate.from_template(
     "[Source: {source_short}]\n{page_content}"
 )
@@ -185,8 +177,6 @@ question_answer_chain = create_stuff_documents_chain(
 )
 
 
-# Sessions
-
 session_histories = {}
 
 
@@ -195,8 +185,6 @@ def get_session_history(session_id: str):
         session_histories[session_id] = ChatMessageHistory()
     return session_histories[session_id]
 
-
-# Helpers
 
 def describe_model(response) -> str:
     metadata = getattr(response, "response_metadata", None) or {}
@@ -230,12 +218,7 @@ _SOURCE_TAG_RE = re.compile(r"\[Source:\s*[^\]]+\]")
 
 
 def answer_used_sources(answer: str, sources):
-    """
-    Return the sources string only when the answer actually cites a
-    retrieved source. If the answer contains no [Source: ...] tag, the
-    model either answered from general knowledge or refused, and the
-    sources panel must not be displayed.
-    """
+    """Return sources only when the answer cites retrieved material."""
     if not sources:
         return None
 
@@ -394,8 +377,6 @@ def log_context_sent(documents):
     )
 
 
-# Routes
-
 @app.route("/")
 def index():
     return render_template("chat.html")
@@ -422,7 +403,6 @@ def chat():
 
         logging.info("USER QUESTION: %s", message)
 
-        # Greetings and small talk — no retrieval.
         if is_greeting_or_smalltalk(message):
             response = invoke_chat_model(
                 qa_prompt.format_messages(
@@ -451,7 +431,6 @@ def chat():
                 },
             })
 
-        # Normal path — retrieve, rerank, answer.
         top_documents, retrieval_debug = retrieve_and_rerank(message)
         log_context_sent(top_documents)
 
